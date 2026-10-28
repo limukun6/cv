@@ -1,0 +1,71 @@
+# ============================================================
+# 数据与产物：大文件绝不入库
+# （注意：不能直接忽略整个 data/，否则 data/*/meta.yaml 和
+#   data/*/splits/*.txt 也会被排除，而它们必须入库。
+#   Git 无法在被忽略的目录里再"反向包含"文件，所以只能
+#   逐个忽略 data/ 下的子目录。）
+# ============================================================
+data/_raw/
+data/*/images/
+data/*/raw/
+data/*/colmap/
+data/*/canonical/
+
+outputs/
+runs/
+*.ply
+*.bin
+
+# ---- 模型权重 ----
+*.pth
+*.pt
+*.ckpt
+*.safetensors
+*.onnx
+weights/
+
+# ---- 原始数据包 ----
+*.tfrecord
+*.tar
+*.7z
+*.zip
+*.mp4
+*.mov
+
+# ---- 百度网盘未完成的下载（临时文件，千万别提交）----
+*.downloading
+*.baiduyun.*
+BaiduNetdiskDownload/
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# ---- 编辑器 / 系统 ----
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- 日志 ----
+*.log
+tensorboard/
+events.out.tfevents.*
+
+# ---- 本地笔记（个人用，不入库）----
+pdf_text.txt
+Project4_项目详解.md
+
+# ============================================================
+# 以下文件【必须】入库，不要加到忽略列表：
+#   results/results.csv           <- 全组唯一的数字真相
+#   data/<scene>/meta.yaml        <- 场景元信息
+#   data/<scene>/splits/*.txt     <- split 定义（可复现的关键）
+#   data/<scene>/splits/_index.csv
+#   configs/**                    <- 实验配置
+# ============================================================

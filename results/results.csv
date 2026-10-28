@@ -1,0 +1,1 @@
+run_id,scene,part,source,split,train_frames,test_frames,psnr,ssim,lpips,train_psnr,ate_rmse,t_init_s,t_train_s,t_eval_s,gpu,git_commit,notes
