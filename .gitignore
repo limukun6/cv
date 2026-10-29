@@ -57,6 +57,9 @@ desktop.ini
 tensorboard/
 events.out.tfevents.*
 
+# ---- 第三方仓库（clone 下来的，不入库）----
+third_party/
+
 # ---- 本地笔记（个人用，不入库）----
 pdf_text.txt
 Project4_项目详解.md
