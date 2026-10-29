@@ -1,0 +1,5 @@
+scene,split_name,frames,test_every,source_pool,created_at,warning
+dl3dv-2,test,39,8,rgb,2026-10-29 15:39,
+dl3dv-2,full,267,-,rgb,2026-10-29 15:39,
+dl3dv-2,sparse10,23,-,rgb,2026-10-29 15:39,
+dl3dv-2,sparse30,8,-,rgb,2026-10-29 15:39,

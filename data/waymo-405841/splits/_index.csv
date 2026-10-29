@@ -1,0 +1,5 @@
+scene,split_name,frames,test_every,source_pool,created_at,warning
+waymo-405841,test,25,8,rgb,2026-10-29 15:39,
+waymo-405841,full,174,-,rgb,2026-10-29 15:39,
+waymo-405841,sparse10,15,-,rgb,2026-10-29 15:39,
+waymo-405841,sparse30,5,-,rgb,2026-10-29 15:39,

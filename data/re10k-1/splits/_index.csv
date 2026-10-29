@@ -1,0 +1,5 @@
+scene,split_name,frames,test_every,source_pool,created_at,warning
+re10k-1,test,35,8,images,2026-10-29 15:39,
+re10k-1,full,244,-,images,2026-10-29 15:39,
+re10k-1,sparse10,21,-,images,2026-10-29 15:39,
+re10k-1,sparse30,7,-,images,2026-10-29 15:39,
