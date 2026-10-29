@@ -1,0 +1,10 @@
+scene: waymo-405841
+source_dataset: waymo
+scene_type: outdoor
+raw_format: frames
+image_subdir: rgb
+has_gt_pose: True
+has_depth: True
+notes: FRONT camera only; 199 frames; 1920x1280
+files_kept: 995
+files_dropped: 0

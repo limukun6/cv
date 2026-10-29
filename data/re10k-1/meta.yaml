@@ -1,0 +1,10 @@
+scene: re10k-1
+source_dataset: re10k
+scene_type: indoor
+raw_format: frames
+image_subdir: images
+has_gt_pose: True
+has_depth: False
+notes: 279 frames; 256x256; stray video.mp4 present
+files_kept: 282
+files_dropped: 0

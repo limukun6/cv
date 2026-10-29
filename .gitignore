@@ -10,6 +10,15 @@ data/*/images/
 data/*/raw/
 data/*/colmap/
 data/*/canonical/
+# 解压出来的原始帧与位姿（体积大，且可由 Project4.zip 重现）
+data/*/rgb/
+data/*/depth/
+data/*/calib/
+data/*/gt/
+data/*/gt_old/
+data/*/sparse/
+data/*/*.json
+data/*/*.mp4
 
 outputs/
 runs/

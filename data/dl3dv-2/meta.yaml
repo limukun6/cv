@@ -1,0 +1,10 @@
+scene: dl3dv-2
+source_dataset: dl3dv
+scene_type: outdoor
+raw_format: frames
+image_subdir: rgb
+has_gt_pose: True
+has_depth: False
+notes: 306 frames after removing 12 jupyter checkpoint files; 256x256
+files_kept: 308
+files_dropped: 13
