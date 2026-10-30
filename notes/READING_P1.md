@@ -26,6 +26,9 @@
 **《3D Gaussian Splatting for Real-Time Radiance Field Rendering》** — SIGGRAPH 2023
 [arXiv:2308.04079](https://arxiv.org/abs/2308.04079) · [项目页](https://repo-sam.inria.fr/fungraph/3d-gaussian-splatting/)
 
+> 📘 **配套精读文档 → [`READING_3DGS.md`](READING_3DGS.md)**：指定部分的逐节精读（📄原文/🗣大白话/🧩伪代码）、**论文 vs 官方代码对照的 9 个坑**、Table 1/2/3 的逐格数字、§7.3 初始化消融、13 道自测题。
+> ⚠️ 注意：本文下面的 §3.1 / §3.2 / §4 是博客式编号，**对应论文的 §4 / §5 / §6 + §7.1**，对照表见配套文档 §0.2。
+
 ### 读哪几节
 
 | 节 | 内容 | 为什么 |

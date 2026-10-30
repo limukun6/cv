@@ -98,7 +98,13 @@ def main():
                 print("  ✗ 训练失败")
                 continue
 
-            rc2, _ = run([PY, GUARD, "--", RENDER, "-m", out, "--skip_train", "--quiet"],
+            # ★ 渲染也必须带同样的划分参数！
+            # 否则 render.py 会用 --eval 默认的「每 8 取 1」测试集，
+            # 和训练时的测试集不一致（帧数全部注册时恰好相同，部分注册时会错开，
+            # Waymo 就是 21 vs 22）。
+            rc2, _ = run([PY, GUARD,
+                          "--train-list", train_list, "--test-list", test_list, "--",
+                          RENDER, "-m", out, "--skip_train", "--quiet"],
                          os.path.join(out, "render.log"))
             if rc2 != 0:
                 print("  ✗ 渲染失败")

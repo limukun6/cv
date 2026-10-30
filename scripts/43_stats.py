@@ -32,7 +32,7 @@ SKIP_NOTES = ("aborted", "smoke")
 
 def load():
     rows = []
-    with open(CSV, encoding="utf-8") as f:
+    with open(CSV, encoding="utf-8-sig") as f:  # tolerance for BOM
         for r in csv.DictReader(f):
             if not r.get("psnr"):
                 continue
