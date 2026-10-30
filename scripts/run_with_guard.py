@@ -61,6 +61,11 @@ def main():
     ap.add_argument("--seed", type=int, default=None,
                     help="重新播种。3DGS 的 safe_state() 里硬编码了 torch.manual_seed(0)，"
                          "不覆盖的话无论跑几次都是同一个种子")
+    ap.add_argument("--train-list", default=None,
+                    help="训练帧名单文件（一行一个文件名）。稀疏实验必须用："
+                         "3DGS 的 --eval 固定按「每 8 张取 1」划分，无法指定训练子集")
+    ap.add_argument("--test-list", default=None,
+                    help="测试帧名单文件。留空则沿用 --eval 自带划分")
     known, rest = ap.parse_known_args()
 
     if known.info:
@@ -127,6 +132,53 @@ def main():
         except Exception as e:
             print(f"[guard] 种子覆盖失败（{type(e).__name__}: {e}），继续用默认种子 0",
                   file=sys.stderr)
+
+    # --- 可选：覆盖训练/测试划分（稀疏实验用）---
+    # 为什么必须这么做：3DGS 的 scene/dataset_readers.py 里
+    #     eval=True  → 一律「排序后每 8 张取 1」（llffhold=8，无 CLI 可改）
+    #     eval=False → test_cam_names_list = []，根本没有测试集
+    # 所以要「只用 8 张训练、但仍在固定的 39 张测试视角上评测」，只能把
+    # Scene.getTrainCameras / getTestCameras 换掉。
+    # 做法：先让原函数把全部相机都建好（--eval 时 train ∪ test = 全部），
+    #       再按我们的名单重新分组。不改第三方代码。
+    if known.train_list or known.test_list:
+        def _read(p):
+            with open(p, encoding="utf-8") as f:
+                return [ln.strip() for ln in f if ln.strip()]
+
+        train_names = _read(known.train_list) if known.train_list else None
+        test_names = _read(known.test_list) if known.test_list else None
+
+        try:
+            from scene import Scene
+            _og_train, _og_test = Scene.getTrainCameras, Scene.getTestCameras
+            _cache = {}
+
+            def _ensure(self, scale):
+                key = (id(self), scale)
+                if key in _cache:
+                    return _cache[key]
+                tr = list(_og_train(self, scale))
+                try:
+                    te = list(_og_test(self, scale))
+                except Exception:
+                    te = []
+                byname = {c.image_name: c for c in tr + te}
+                trn = [byname[n] for n in train_names if n in byname] if train_names else tr
+                tst = [byname[n] for n in test_names if n in byname] if test_names else te
+                if train_names:
+                    miss = [n for n in train_names if n not in byname]
+                    if miss:
+                        print(f"[split] 警告: {len(miss)} 个训练帧不在模型里，已跳过 "
+                              f"（例: {miss[:3]}）", file=sys.stderr)
+                print(f"[split] 覆盖划分 → 训练 {len(trn)} 帧 / 测试 {len(tst)} 帧", file=sys.stderr)
+                _cache[key] = (trn, tst)
+                return _cache[key]
+
+            Scene.getTrainCameras = lambda self, scale=1.0: _ensure(self, scale)[0]
+            Scene.getTestCameras = lambda self, scale=1.0: _ensure(self, scale)[1]
+        except Exception as e:
+            print(f"[split] 覆盖失败（{type(e).__name__}: {e}），沿用原划分", file=sys.stderr)
 
     sys.argv = rest
     runpy.run_path(target, run_name="__main__")
