@@ -1,3 +1,4 @@
 ﻿run_id,scene,part,source,split,train_frames,test_frames,psnr,ssim,lpips,train_psnr,ate_rmse,t_init_s,t_train_s,t_eval_s,gpu,git_commit,notes
 dl3dv-2__colmap__full__3dgs__20261029-1814,dl3dv-2,P1,colmap,full,267,39,33.8932,0.9675,0.0419,34.6080,,98.4,2370.0,352.0,RTX 5070 Laptop,7cc0523,30k iter; --eval; 256x256 native; ~420k gaussians at 7k; LPIPS=vgg/0-1
 re10k-1__colmap__full__3dgs__20261030-0937,re10k-1,P1,colmap,full,244,35,34.3487,0.9817,0.0207,34.6918,,216.0,678.0,9.1,RTX 5070 Laptop,441fbb9,30k iter; --eval; 256x256 native; convergence curve logged; LPIPS=vgg/0-1
+dl3dv-2__colmap__full__3dgs__20261030-0952,dl3dv-2,P1,colmap,full,267,39,33.4117,0.9657,0.0457,34.4900,,98.4,1104.0,9.1,RTX 5070 Laptop,586d0cc,30k iter; --eval; convergence curve logged; LPIPS=vgg/0-1; repeat of 1814 run (variance +0.48dB)
