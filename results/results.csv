@@ -8,3 +8,4 @@ dl3dv-2__colmap__full__3dgs__seed3__20261030-2054,dl3dv-2,P1,colmap,full,267,39,
 re10k-1__colmap__full__3dgs__seed1__20261030-2103,re10k-1,P1,colmap,full,244,35,34.339,0.9817,0.0204,35.3443,,,506.8,6.0,RTX 5070 Laptop,seed-sweep,seed=1; noise-floor experiment; LPIPS=vgg/0-1
 re10k-1__colmap__full__3dgs__seed2__20261030-2112,re10k-1,P1,colmap,full,244,35,34.2694,0.9815,0.0208,35.002,,,515.4,5.8,RTX 5070 Laptop,seed-sweep,seed=2; noise-floor experiment; LPIPS=vgg/0-1
 re10k-1__colmap__full__3dgs__seed3__20261030-2121,re10k-1,P1,colmap,full,244,35,34.3934,0.9816,0.0208,34.9396,,,511.4,5.9,RTX 5070 Laptop,seed-sweep,seed=3; noise-floor experiment; LPIPS=vgg/0-1
+waymo-405841__colmap__full__3dgs__20261030-2148,waymo-405841,P1,colmap,full,154,22,32.9901,0.9467,0.0916,33.1376,,838.0,1044.0,11.0,RTX 5070 Laptop,ed86c4f,30k iter; -r 4 (480x320); COLMAP registered only 176/199 so split follows --eval over registered; LPIPS=vgg/0-1
