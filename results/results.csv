@@ -3,3 +3,8 @@ dl3dv-2__colmap__full__3dgs__20261029-1814,dl3dv-2,P1,colmap,full,267,39,33.8932
 re10k-1__colmap__full__3dgs__20261030-0937,re10k-1,P1,colmap,full,244,35,34.3487,0.9817,0.0207,34.6918,,216.0,678.0,9.1,RTX 5070 Laptop,441fbb9,30k iter; --eval; 256x256 native; convergence curve logged; LPIPS=vgg/0-1
 dl3dv-2__colmap__full__3dgs__20261030-0952,dl3dv-2,P1,colmap,full,267,39,33.4117,0.9657,0.0457,34.4900,,98.4,1104.0,9.1,RTX 5070 Laptop,586d0cc,30k iter; --eval; convergence curve logged; LPIPS=vgg/0-1; repeat of 1814 run (variance +0.48dB)
 dl3dv-2__colmap__full__3dgs__seed1__20261030-1203,dl3dv-2,P1,colmap,full,267,39,33.1737,0.9652,0.0467,33.1950,,98.4,~700.0,9.1,RTX 5070 Laptop,586d0cc,seed=1; noise-floor experiment; LPIPS=vgg/0-1
+dl3dv-2__colmap__full__3dgs__seed2__20261030-2044,dl3dv-2,P1,colmap,full,267,39,32.9997,0.9637,0.0475,33.2607,,,561.4,6.3,RTX 5070 Laptop,seed-sweep,seed=2; noise-floor experiment; LPIPS=vgg/0-1
+dl3dv-2__colmap__full__3dgs__seed3__20261030-2054,dl3dv-2,P1,colmap,full,267,39,33.5716,0.9674,0.0424,34.3585,,,553.0,6.3,RTX 5070 Laptop,seed-sweep,seed=3; noise-floor experiment; LPIPS=vgg/0-1
+re10k-1__colmap__full__3dgs__seed1__20261030-2103,re10k-1,P1,colmap,full,244,35,34.339,0.9817,0.0204,35.3443,,,506.8,6.0,RTX 5070 Laptop,seed-sweep,seed=1; noise-floor experiment; LPIPS=vgg/0-1
+re10k-1__colmap__full__3dgs__seed2__20261030-2112,re10k-1,P1,colmap,full,244,35,34.2694,0.9815,0.0208,35.002,,,515.4,5.8,RTX 5070 Laptop,seed-sweep,seed=2; noise-floor experiment; LPIPS=vgg/0-1
+re10k-1__colmap__full__3dgs__seed3__20261030-2121,re10k-1,P1,colmap,full,244,35,34.3934,0.9816,0.0208,34.9396,,,511.4,5.9,RTX 5070 Laptop,seed-sweep,seed=3; noise-floor experiment; LPIPS=vgg/0-1
