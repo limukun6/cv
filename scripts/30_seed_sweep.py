@@ -52,6 +52,9 @@ def main():
     ap.add_argument("--scenes", nargs="+", default=["dl3dv-2", "re10k-1"])
     ap.add_argument("--seeds", type=int, nargs="+", default=[1, 2, 3])
     ap.add_argument("--iterations", type=int, default=30000)
+    ap.add_argument("--resolution", type=int, default=None,
+                    help="传给 3DGS 的 -r。Waymo 是 1920x1280，8 GB 显存必须 -r 4，"
+                         "否则会撞上护栏上限直接 OOM")
     args = ap.parse_args()
 
     os.makedirs(os.path.join(ROOT, "outputs", "runs"), exist_ok=True)
@@ -72,10 +75,12 @@ def main():
             os.makedirs(out, exist_ok=True)
             print(f"\n{'='*70}\n{run_id}\n{'='*70}")
 
-            rc, dt = run([PY, GUARD, "--seed", str(seed), "--", TRAIN,
-                          "-s", src, "-m", out, "--eval", "--disable_viewer",
-                          "--iterations", str(args.iterations)],
-                         os.path.join(out, "train.log"))
+            cmd = [PY, GUARD, "--seed", str(seed), "--", TRAIN,
+                   "-s", src, "-m", out, "--eval", "--disable_viewer",
+                   "--iterations", str(args.iterations)]
+            if args.resolution:
+                cmd += ["-r", str(args.resolution)]
+            rc, dt = run(cmd, os.path.join(out, "train.log"))
             print(f"  训练 rc={rc}  {dt/60:.1f} 分钟")
             if rc != 0:
                 print("  ✗ 训练失败，跳过")
