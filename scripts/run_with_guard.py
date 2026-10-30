@@ -58,6 +58,9 @@ def main():
     ap.add_argument("--info", action="store_true")
     ap.add_argument("--hard-cap-gb", type=float, default=None,
                     help="直接指定 GB 上限，覆盖 --fraction")
+    ap.add_argument("--seed", type=int, default=None,
+                    help="重新播种。3DGS 的 safe_state() 里硬编码了 torch.manual_seed(0)，"
+                         "不覆盖的话无论跑几次都是同一个种子")
     known, rest = ap.parse_known_args()
 
     if known.info:
@@ -96,6 +99,34 @@ def main():
     target_dir = os.path.dirname(os.path.abspath(target))
     if target_dir not in sys.path:
         sys.path.insert(0, target_dir)
+
+    # --- 可选：重新播种 ---
+    # 3DGS 的 utils.general_utils.safe_state() 里写死了 random.seed(0) /
+    # np.random.seed(0) / torch.manual_seed(0)，所以不管跑几次种子都一样。
+    # 这里在 train.py 执行 `from utils.general_utils import safe_state` 之前
+    # 先把这个函数换掉：先调原函数（保留它的 stdout 重定向行为），再按我们的种子重播。
+    # 这样既不改第三方代码，又能真正换种子。
+    if known.seed is not None:
+        import random
+        import numpy as np
+        import torch
+
+        try:
+            import utils.general_utils as gu
+            _orig = gu.safe_state
+
+            def _patched(silent):
+                _orig(silent)
+                random.seed(known.seed)
+                np.random.seed(known.seed)
+                torch.manual_seed(known.seed)
+                torch.cuda.manual_seed_all(known.seed)
+
+            gu.safe_state = _patched
+            print(f"[guard] 种子已覆盖为 {known.seed}", file=sys.stderr)
+        except Exception as e:
+            print(f"[guard] 种子覆盖失败（{type(e).__name__}: {e}），继续用默认种子 0",
+                  file=sys.stderr)
 
     sys.argv = rest
     runpy.run_path(target, run_name="__main__")
