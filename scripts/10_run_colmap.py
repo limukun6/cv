@@ -33,7 +33,29 @@ import subprocess
 import sys
 import time
 
-COLMAP_EXE = r"D:\conda\Anaconda\envs\colmap\Library\bin\colmap.exe"
+def find_colmap():
+    """找 colmap 可执行文件：环境变量 → PATH → 已知位置。
+
+    为什么要这样写：脚本要同时在本机 Windows 和租来的 Linux 机器上跑。
+    硬编码 `D:\\conda\\...\\colmap.exe` 会让租来的机器第一步就失败，
+    而那是租用时间里最昂贵的一种失败。
+    """
+    env = os.environ.get("COLMAP_BIN")
+    if env and os.path.isfile(env):
+        return env
+    found = shutil.which("colmap")
+    if found:
+        return found
+    for cand in (
+        r"D:\conda\Anaconda\envs\colmap\Library\bin\colmap.exe",   # 本机 Windows
+        "/usr/local/bin/colmap", "/usr/bin/colmap",                 # Linux
+    ):
+        if os.path.isfile(cand):
+            return cand
+    return None
+
+
+COLMAP_EXE = find_colmap()
 IMAGE_EXTS = (".png", ".jpg", ".jpeg")
 
 
@@ -86,8 +108,10 @@ def main():
     ap.add_argument("--force", action="store_true", help="覆盖已有结果")
     args = ap.parse_args()
 
-    if not os.path.isfile(COLMAP_EXE):
-        sys.exit(f"找不到 colmap: {COLMAP_EXE}")
+    if not COLMAP_EXE or not os.path.isfile(COLMAP_EXE):
+        sys.exit("找不到 colmap。请装好 colmap 并把它的路径写进环境变量 COLMAP_BIN，"
+                 "或者确保它在 PATH 里。")
+    print(f"colmap: {COLMAP_EXE}")
 
     scene_dir = os.path.join(args.data, args.scene)
     src = os.path.join(scene_dir, image_subdir(scene_dir))
