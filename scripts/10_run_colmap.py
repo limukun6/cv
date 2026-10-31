@@ -71,10 +71,19 @@ def image_subdir(scene_dir):
     sys.exit("找不到图片目录")
 
 
-def link_images(src_dir, dst_dir):
-    """用硬链接把图片挂进 COLMAP 工作区；跨卷或不支持时退回复制。"""
+def link_images(src_dir, dst_dir, only=None):
+    """用硬链接把图片挂进 COLMAP 工作区；跨卷或不支持时退回复制。
+
+    only: 文件名集合。给了就只处理这些图（用于"统一帧数"实验——
+    在同样的 N 帧子集上跑 COLMAP，才能和 VGGT 的 N 帧公平对比）。
+    """
     os.makedirs(dst_dir, exist_ok=True)
     names = sorted(f for f in os.listdir(src_dir) if f.lower().endswith(IMAGE_EXTS))
+    if only is not None:
+        missing = [n for n in only if n not in set(names)]
+        if missing:
+            print(f"  ⚠ 有 {len(missing)} 个指定图片不存在（例: {missing[:3]}）")
+        names = [n for n in names if n in only]
     linked, copied = 0, 0
     for n in names:
         s, d = os.path.join(src_dir, n), os.path.join(dst_dir, n)
@@ -106,6 +115,11 @@ def main():
     ap.add_argument("--overlap", type=int, default=10, help="sequential_matcher 的帧间隔")
     ap.add_argument("--max-image-size", type=int, default=1600)
     ap.add_argument("--force", action="store_true", help="覆盖已有结果")
+    ap.add_argument("--image-list", default=None,
+                    help="只在这些图片上跑（一行一个文件名）。用于统一帧数实验")
+    ap.add_argument("--out-name", default="colmap",
+                    help="工作区目录名（默认 colmap）。统一帧数实验用 colmap_n50 之类，"
+                         "避免覆盖全帧数的模型")
     args = ap.parse_args()
 
     if not COLMAP_EXE or not os.path.isfile(COLMAP_EXE):
@@ -115,10 +129,20 @@ def main():
 
     scene_dir = os.path.join(args.data, args.scene)
     src = os.path.join(scene_dir, image_subdir(scene_dir))
-    ws = os.path.join(scene_dir, "colmap")
+    ws = os.path.join(scene_dir, args.out_name)
     sparse = os.path.join(ws, "sparse")
     db = os.path.join(ws, "database.db")
     log = os.path.join(ws, "colmap.log")
+
+    only = None
+    if args.image_list:
+        with open(args.image_list, encoding="utf-8-sig") as f:
+            only = set(ln.strip() for ln in f if ln.strip())
+        print(f"只处理指定图片: {len(only)} 张（来自 {args.image_list}）")
+        # 换数据集时不能复用旧的 db/sparse
+        if not args.force and os.path.isdir(sparse) and os.listdir(sparse):
+            print(f"⚠ {sparse} 里有上一次的结果，自动改为 --force 重跑（避免子集/全集混用）")
+            args.force = True
 
     if os.path.isdir(sparse) and os.listdir(sparse) and not args.force:
         print(f"{sparse} 已有结果，跳过（加 --force 重跑）")
@@ -133,7 +157,7 @@ def main():
                 os.remove(p)
 
     print(f"=== COLMAP on {args.scene} ===")
-    n, nl, nc = link_images(src, os.path.join(ws, "images"))
+    n, nl, nc = link_images(src, os.path.join(ws, "images"), only=only)
     print(f"  图片 {n} 张（硬链接 {nl}，复制 {nc}）")
 
     common = ["--database_path", db, "--image_path", os.path.join(ws, "images")]

@@ -136,8 +136,8 @@ VGGT-Ω / VGGT+BA 推理      2 min
 |---|---|---|
 | 1 | 脚本路径可移植（不再硬编码 Windows 路径） | ✅ **已完成**（`COLMAP_BIN` 环境变量 + PATH 查找） |
 | 2 | `env/setup_linux.sh`：一条命令装完 Linux 环境 | ⬜ 待写 |
-| 3 | 权重下载脚本（HuggingFace 失败时自动切 ModelScope） | ⬜ 待写 |
-| 4 | 数据打包清单（只传 images + splits + meta，0.84 GB） | ⬜ 待写 |
+| 3 | scripts/00b_fetch_vggt_weights.py：ModelScope → hf-mirror → 官方，三级回退 | ✅ 已完成 |
+| 4 | scripts/00c_make_bundle.py：打包 images + splits + 已算好的 COLMAP 模型 | ✅ 已完成 |
 | 5 | `scripts/run_p1_matrix.py`：一条命令跑完 P2+P3+P4 全矩阵 | ⬜ 待写 |
 | 6 | 所有脚本用 `python -u` 跑，日志实时落盘 | ⬜ 检查 |
 
