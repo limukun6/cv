@@ -47,11 +47,50 @@ if [ -z "$CAP" ]; then
 fi
 echo "计算能力: ${CAP:-未知}"
 
+# ★ nvcc 是硬性要求：3DGS 的三个扩展必须在构建时编译。
+#   租来的镜像如果只装了 CUDA **runtime**（没有 toolkit），就会在编译阶段才失败，
+#   白等几十分钟。所以在这里提前拦。
+if command -v nvcc >/dev/null 2>&1; then
+    echo "nvcc: $(nvcc --version | grep -o 'release [0-9.]*' | head -1)"
+else
+    echo "✗ 找不到 nvcc —— 这个镜像只有 CUDA runtime，没有编译器。"
+    echo "  3DGS 的三个 CUDA 扩展无法编译。两个选择："
+    echo "    1) 换一个带 CUDA toolkit（devel）的镜像（推荐，见 docs/IMAGE_CHOICE.md）"
+    echo "    2) 手动装 toolkit： apt-get install -y cuda-toolkit-12-8"
+    if [ "${ALLOW_NO_NVCC:-0}" != "1" ]; then
+        exit 1
+    fi
+    echo "  （ALLOW_NO_NVCC=1，继续，但编译阶段可能失败）"
+fi
+
 # ---------- 2. venv ----------
 echo
 echo "[2/7] 建 Python 虚拟环境"
 PYBIN=${PYBIN:-python3}
-$PYBIN -m venv .venv
+$PYBIN --version
+
+# 租来的镜像经常缺 python3-venv（Ubuntu 把 ensurepip 拆出去了）。
+# 这里做三级回退，避免第一步就卡住。
+if ! $PYBIN -m venv .venv 2>/dev/null; then
+    echo "  venv 不可用，尝试安装 python3-venv"
+    if command -v apt-get >/dev/null 2>&1; then
+        (sudo apt-get update -qq && sudo apt-get install -y -qq python3-venv) >/dev/null 2>&1 || true
+    fi
+fi
+if [ ! -d .venv ]; then
+    $PYBIN -m venv .venv 2>/dev/null || true
+fi
+if [ ! -d .venv ]; then
+    echo "  仍失败，尝试 virtualenv"
+    $PYBIN -m pip install -q --user virtualenv 2>/dev/null || true
+    $PYBIN -m virtualenv .venv 2>/dev/null || true
+fi
+if [ ! -d .venv ]; then
+    echo "✗ 无法创建虚拟环境。请手动装 python3-venv，或改用 conda："
+    echo "    conda create -n p1 python=3.11 -y && conda activate p1"
+    echo "  之后把 PYBIN 指向该环境再跑本脚本：PYBIN=\$(which python) bash env/setup_linux.sh"
+    exit 1
+fi
 # shellcheck disable=SC1091
 source .venv/bin/activate
 python -m pip install -q --upgrade pip wheel setuptools
