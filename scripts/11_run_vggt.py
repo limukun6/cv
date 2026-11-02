@@ -151,6 +151,17 @@ def main():
     sub = [d for d in os.listdir(sparse)] if os.path.isdir(sparse) else []
     print(f"输出: {sparse}  子目录 {sub}")
 
+    # ★ 目录规整：VGGT 直接写到 sparse/ 下，而 3DGS 的约定是 sparse/0/。
+    #   不搬的话 3DGS 会去读 sparse/0/images.bin，报 FileNotFoundError。
+    s0 = os.path.join(sparse, "0")
+    if os.path.isfile(os.path.join(sparse, "images.bin")) and not os.path.isdir(s0):
+        os.makedirs(s0, exist_ok=True)
+        for f in os.listdir(sparse):
+            if f == "0":
+                continue
+            os.replace(os.path.join(sparse, f), os.path.join(s0, f))
+        print(f"已规整为 sparse/0/：{os.listdir(s0)}")
+
     # 写一行耗时记录，方便后面填 results.csv
     with open(os.path.join(ws, "vggt_time.txt"), "w", encoding="utf-8") as f:
         f.write(f"{dt:.1f}\n")
