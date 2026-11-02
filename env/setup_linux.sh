@@ -21,7 +21,18 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
+# ★ AutoDL / 多数云镜像的坑：非交互 SSH 不会加载 .bashrc，
+#   所以 conda 和 cuda 都不在 PATH 里 —— 表现为 `python3: command not found`、
+#   `nvcc: command not found`，让人误判成"镜像不对"。
+#   这里主动把它们补进 PATH。
+for d in /usr/local/cuda/bin /root/miniconda3/bin /opt/conda/bin /usr/local/bin; do
+    if [ -d "$d" ] && [[ ":$PATH:" != *":$d:"* ]]; then
+        export PATH="$d:$PATH"
+    fi
+done
+
 echo "================ 仓库根目录: $ROOT ================"
+echo "PATH 已补: $(command -v python3 || echo '无 python3')  |  $(command -v nvcc || echo '无 nvcc')"
 
 # ---------- 1. 硬件与环境检查 ----------
 echo
