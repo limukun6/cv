@@ -26,26 +26,47 @@ echo "================ 仓库根目录: $ROOT ================"
 # ---------- 1. 硬件与环境检查 ----------
 echo
 echo "[1/7] 检查 GPU / 驱动"
+
+# 无卡模式（AutoDL 的 0.1 元/小时模式）也允许跑这个脚本：
+# 装包、编译 CUDA 扩展**都不需要 GPU 在线**（nvcc 只要 toolkit 在就能编译）。
+# 所以等卡期间可以先把环境准备好，有卡了一键切过去。
+SKIP_GPU=${SKIP_GPU:-0}
+
 if ! command -v nvidia-smi >/dev/null 2>&1; then
-    echo "✗ 找不到 nvidia-smi。这不像一台有 NVIDIA 驱动的机器。"
-    exit 1
+    if [ "$SKIP_GPU" = "1" ]; then
+        echo "  ⚠ 无 GPU（无卡模式）。跳过 GPU 检查，按默认架构 8.9 编译。"
+    else
+        echo "✗ 找不到 nvidia-smi。"
+        echo "  如果这是 AutoDL 的「无卡模式」，用： SKIP_GPU=1 bash env/setup_linux.sh"
+        echo "  如果这是普通模式，说明镜像不对（没有驱动）。"
+        exit 1
+    fi
 fi
-nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader
-VRAM_MB=$(nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits | head -1)
-echo "显存: ${VRAM_MB} MiB"
+
+if command -v nvidia-smi >/dev/null 2>&1; then
+    nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader
+    VRAM_MB=$(nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits | head -1)
+    echo "显存: ${VRAM_MB} MiB"
+fi
 
 # 计算显卡的计算能力，用来决定编译架构
-CAP=$(python3 - <<'PY' 2>/dev/null || echo ""
-import subprocess, re
+CAP=""
+if command -v nvidia-smi >/dev/null 2>&1; then
+    CAP=$(python3 - <<'PY' 2>/dev/null || echo ""
+import subprocess
 out = subprocess.run(["nvidia-smi","--query-gpu=compute_cap","--format=csv,noheader"],
                      capture_output=True, text=True).stdout.strip()
 print(out.splitlines()[0] if out else "")
 PY
 )
-if [ -z "$CAP" ]; then
-    CAP=$(nvidia-smi --query-gpu=compute_cap --format=csv,noheader 2>/dev/null | head -1 | tr -d '. ')
+    if [ -z "$CAP" ]; then
+        CAP=$(nvidia-smi --query-gpu=compute_cap --format=csv,noheader 2>/dev/null | head -1 | tr -d '. ')
+    fi
 fi
-echo "计算能力: ${CAP:-未知}"
+# 无卡模式下拿不到算力，默认按 8.9（4090/4090D/L20 都是 8.9）编译。
+# 万一后来换到别的架构，重跑一次脚本加 ARCH=xx 覆盖即可。
+CAP=${CAP:-${ARCH:-8.9}}
+echo "计算能力: ${CAP}（无卡模式下按默认值 8.9）"
 
 # ★ nvcc 是硬性要求：3DGS 的三个扩展必须在构建时编译。
 #   租来的镜像如果只装了 CUDA **runtime**（没有 toolkit），就会在编译阶段才失败，
@@ -142,10 +163,12 @@ if [ "$REUSE_TORCH" = "1" ]; then
     python - <<'PY'
 import torch
 print("  torch", torch.__version__, "cuda", torch.version.cuda)
-print("  arch list:", torch.cuda.get_arch_list())
-assert torch.cuda.is_available(), "CUDA 不可用"
-x = torch.randn(512, 512, device="cuda"); (x @ x).sum().item()
-print("  KERNEL TEST: PASS")
+if torch.cuda.is_available():
+    print("  arch list:", torch.cuda.get_arch_list())
+    x = torch.randn(512, 512, device="cuda"); (x @ x).sum().item()
+    print("  KERNEL TEST: PASS")
+else:
+    print("  ⚠ 无 GPU（无卡模式）→ 跳过 kernel test，装包和编译仍可进行")
 PY
 else
     if [ -f .venv/.reuse_torch ]; then
@@ -160,21 +183,25 @@ else
     python - <<'PY'
 import torch
 print("  torch", torch.__version__, "cuda", torch.version.cuda)
-print("  arch list:", torch.cuda.get_arch_list())
-assert torch.cuda.is_available(), "CUDA 不可用"
-x = torch.randn(512, 512, device="cuda"); (x @ x).sum().item()
-print("  KERNEL TEST: PASS")
+if torch.cuda.is_available():
+    print("  arch list:", torch.cuda.get_arch_list())
+    x = torch.randn(512, 512, device="cuda"); (x @ x).sum().item()
+    print("  KERNEL TEST: PASS")
+else:
+    print("  ⚠ 无 GPU（无卡模式）→ 跳过 kernel test，装包和编译仍可进行")
 PY
 fi
 
 python - <<'PY'
 import torch
 print("torch", torch.__version__, "| cuda build", torch.version.cuda)
-print("arch list:", torch.cuda.get_arch_list())
-assert torch.cuda.is_available(), "CUDA 不可用"
-x = torch.randn(1024, 1024, device="cuda")
-y = (x @ x).sum().item()
-print("KERNEL TEST: PASS", y)
+if torch.cuda.is_available():
+    print("arch list:", torch.cuda.get_arch_list())
+    x = torch.randn(1024, 1024, device="cuda")
+    y = (x @ x).sum().item()
+    print("KERNEL TEST: PASS", y)
+else:
+    print("⚠ 无 GPU（无卡模式）→ 跳过 kernel test")
 PY
 
 # ---------- 4. 3DGS ----------
