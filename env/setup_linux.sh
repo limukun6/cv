@@ -95,6 +95,12 @@ else
     echo "  （ALLOW_NO_NVCC=1，继续，但编译阶段可能失败）"
 fi
 
+# ★ 必须在建 venv **之前**记下基础解释器的路径。
+#   踩过的坑：如果等到第 3 步才探测"镜像自带的 torch"，那时已经 `source .venv/bin/activate`，
+#   `python3` 指向的是空 venv → 探到 none → 误判为"没有 torch" → 白下 2.5 GB。
+BASE_PY=$(command -v python3)
+echo "基础解释器: $BASE_PY"
+
 # ---------- 2. venv ----------
 echo
 echo "[2/7] 建 Python 虚拟环境"
@@ -142,8 +148,8 @@ NVCC_MAJOR=$(echo "${NVCC_REL:-12.4}" | awk -F. '{print $1}')
 CU_TAG=$(echo "${NVCC_REL:-12.4}" | awk -F. '{print $1$2}')     # 12.4 -> 124
 echo "  镜像 nvcc: ${NVCC_REL:-未知}  → CUDA 轮子标签 cu${CU_TAG}"
 
-SYS_TORCH=$($PYBIN -c "import torch;print(torch.__version__)" 2>/dev/null || echo "none")
-SYS_CUDA=$($PYBIN -c "import torch;print(torch.version.cuda or '')" 2>/dev/null || echo "")
+SYS_TORCH=$($BASE_PY -c "import torch;print(torch.__version__)" 2>/dev/null || echo "none")
+SYS_CUDA=$($BASE_PY -c "import torch;print(torch.version.cuda or '')" 2>/dev/null || echo "")
 echo "  镜像自带 torch: $SYS_TORCH (cuda ${SYS_CUDA:-无})"
 
 REUSE_TORCH=${REUSE_TORCH:-auto}
