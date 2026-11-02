@@ -97,11 +97,54 @@ python -m pip install -q --upgrade pip wheel setuptools
 
 # ---------- 3. torch ----------
 echo
-echo "[3/7] 装 PyTorch"
-# 4090/3090 等都是 sm_89/sm_86，cu128 轮子覆盖；cu128 也覆盖到 sm_120，
-# 所以将来换 Blackwell 卡也能用同一套命令。
-pip install -q torch torchvision --index-url https://download.pytorch.org/whl/cu128 || \
-pip install -q torch torchvision
+echo "[3/7] PyTorch"
+
+# 如果镜像自带的 torch 就是我们要的版本（2.8.x + CUDA 12.8），直接复用。
+# 好处：省 2.5 GB 下载 + 5~10 分钟。AutoDL 的 "PyTorch 2.8.0 / CUDA 12.8" 镜像正好符合。
+# 想强制重装就 REUSE_TORCH=0。
+SYS_TORCH=$($PYBIN -c "import torch;print(torch.__version__)" 2>/dev/null || echo "none")
+SYS_CUDA=$($PYBIN -c "import torch;print(torch.version.cuda or '')" 2>/dev/null || echo "")
+echo "  镜像自带 torch: $SYS_TORCH (cuda $SYS_CUDA)"
+
+REUSE_TORCH=${REUSE_TORCH:-auto}
+if [ "$REUSE_TORCH" = "auto" ]; then
+    case "$SYS_TORCH" in
+        2.8.*)
+            case "$SYS_CUDA" in
+                12.8*) REUSE_TORCH=1 ;;
+                *)     REUSE_TORCH=0 ;;
+            esac ;;
+        *) REUSE_TORCH=0 ;;
+    esac
+fi
+
+if [ "$REUSE_TORCH" = "1" ]; then
+    echo "  → 复用镜像自带的 torch（省 2.5 GB 下载）"
+    # 注意：venv 必须带 --system-site-packages 才看得见镜像里的 torch。
+    # 如果第 2 步已经建好了普通 venv，这里重建一个。
+    if [ ! -f .venv/.reuse_torch ]; then
+        rm -rf .venv
+        $PYBIN -m venv --system-site-packages .venv
+        # shellcheck disable=SC1091
+        source .venv/bin/activate
+        touch .venv/.reuse_torch
+    fi
+    python - <<'PY'
+import torch
+print("  torch", torch.__version__, "cuda", torch.version.cuda)
+print("  arch list:", torch.cuda.get_arch_list())
+assert torch.cuda.is_available(), "CUDA 不可用"
+x = torch.randn(512, 512, device="cuda"); (x @ x).sum().item()
+print("  KERNEL TEST: PASS")
+PY
+    pip install -q torchvision 2>/dev/null || true
+else
+    # 4090/4090D/3090 都是 sm_89/sm_86，cu128 轮子覆盖；cu128 也覆盖到 sm_120，
+    # 将来换 Blackwell 卡能继续用同一套命令。
+    echo "  → 安装 torch 2.8.0 + cu128"
+    pip install -q torch==2.8.0 torchvision --index-url https://download.pytorch.org/whl/cu128 || \
+    pip install -q torch torchvision
+fi
 
 python - <<'PY'
 import torch

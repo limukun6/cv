@@ -33,6 +33,14 @@ runs/
 *.onnx
 weights/
 
+# ---- 传输用的打包文件（几百 MB，绝不入库）----
+# 教训：`git add -A` 曾把 549 MB 的 p1_bundle.tar.gz 提交上去，
+# 被 GitHub 的 pre-receive hook 拒绝（单文件上限 100 MB）——推送失败但提交已产生，
+# 得 reset 才能恢复。
+p1_bundle*.tar.gz
+*.tar.gz
+*.tgz
+
 # ---- 原始数据包 ----
 *.tfrecord
 *.tar
