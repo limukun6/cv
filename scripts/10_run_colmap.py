@@ -162,13 +162,29 @@ def main():
 
     common = ["--database_path", db, "--image_path", os.path.join(ws, "images")]
 
+    # ★ COLMAP 的选项分组名在 3.10/4.x 改过：
+    #   3.x: --SiftExtraction.*  / --SiftMatching.*
+    #   4.x: --FeatureExtraction.* / --FeatureMatching.*
+    #   传错名字 COLMAP 会直接报错退出（rc=1，而且只在 colmap.log 里留一行）。
+    #   我们本机是 4.2、租的机器是 apt 装的 3.7 —— 必须按版本自适配。
+    import re as _re
+    fe_prefix, fm_prefix = "SiftExtraction", "SiftMatching"
+    try:
+        _h = subprocess.run([COLMAP_EXE, "--help"], capture_output=True, text=True).stdout
+        _m = _re.search(r"COLMAP\s+(\d+)\.(\d+)", _h)
+        if _m and (int(_m.group(1)), int(_m.group(2))) >= (3, 10):
+            fe_prefix, fm_prefix = "FeatureExtraction", "FeatureMatching"
+    except Exception:
+        pass
+    print(f"  COLMAP 选项前缀: {fe_prefix} / {fm_prefix}")
+
     # 1) 特征提取
     rc, dt = run([COLMAP_EXE, "feature_extractor", *common,
                   "--ImageReader.single_camera", "1",
                   "--ImageReader.camera_model", "PINHOLE",
-                  "--FeatureExtraction.use_gpu", str(args.use_gpu),
-                  "--FeatureExtraction.max_image_size", str(args.max_image_size),
-                  "--SiftExtraction.max_num_features", "8192"], log)
+                  f"--{fe_prefix}.use_gpu", str(args.use_gpu),
+                  f"--{fe_prefix}.max_image_size", str(args.max_image_size),
+                  f"--{fe_prefix}.max_num_features", "8192"], log)
     print(f"  [1/3] feature_extractor  {dt:6.1f}s  rc={rc}")
     if rc != 0:
         sys.exit(f"特征提取失败，看 {log}")
@@ -178,7 +194,7 @@ def main():
                   "--SequentialMatching.overlap", str(args.overlap),
                   "--SequentialMatching.quadratic_overlap", "1",
                   "--SequentialMatching.loop_detection", "0",
-                  "--FeatureMatching.use_gpu", str(args.use_gpu)], log)
+                  f"--{fm_prefix}.use_gpu", str(args.use_gpu)], log)
     print(f"  [2/3] sequential_matcher {dt:6.1f}s  rc={rc}")
     if rc != 0:
         sys.exit(f"匹配失败，看 {log}")
