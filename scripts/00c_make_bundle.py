@@ -86,9 +86,14 @@ def main():
                 if os.path.isfile(p):
                     tar.add(p, arcname=os.path.join(args.data, scene, rel))
                 elif os.path.isdir(p):
-                    # 过滤掉 .ipynb_checkpoints 之类的垃圾
+                    # 过滤垃圾：.ipynb_checkpoints、下划线开头的备份（如 waymo 的 _old0）
+                    # ★ 关键：colmap/ 下的 images/ 是硬链接副本，图片已经在 rgb/ 里传过一遍了，
+                    #   再打进去等于体积翻倍（Waymo 光这个就 464 MB）。3DGS 训练时
+                    #   由 35_run_p1_matrix.py 自己建工作区，不需要它。
                     for f in os.listdir(p):
-                        if f.startswith(".ipynb"):
+                        if f.startswith(".ipynb") or f.startswith("_"):
+                            continue
+                        if rel.startswith("colmap") and f == "images":
                             continue
                         fp = os.path.join(p, f)
                         tar.add(fp, arcname=os.path.join(args.data, scene, rel, f))
