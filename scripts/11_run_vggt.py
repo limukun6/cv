@@ -108,6 +108,27 @@ def main():
         sys.exit("没有可处理的图片")
     print(f"VGGT 输入: {n} 张图 → {ws}")
 
+    # ★ 让 VGGT 用我们下好的权重，别再去 HuggingFace 重新下一遍。
+    #   demo_colmap.py 内部走 VGGT.from_pretrained("facebook/VGGT-1B")，
+    #   最终落到 torch.hub 的缓存路径 ~/.cache/torch/hub/checkpoints/model.pt。
+    #   把本地权重硬链接到那里，torch.hub 见到文件存在就不会再下载。
+    #   （踩过的坑：hf 在国内连不上，脚本会卡在 "Downloading ..." 很久甚至失败）
+    local_w = args.weights or os.path.join(ROOT, "third_party", "weights", "model.pt")
+    if os.path.isfile(local_w):
+        cache_dir = os.path.expanduser("~/.cache/torch/hub/checkpoints")
+        os.makedirs(cache_dir, exist_ok=True)
+        target = os.path.join(cache_dir, "model.pt")
+        if not os.path.isfile(target):
+            try:
+                os.link(local_w, target)
+            except OSError:
+                shutil.copy2(local_w, target)
+            print(f"权重已挂进 torch.hub 缓存: {target}")
+        else:
+            print(f"torch.hub 缓存已存在: {target}")
+    else:
+        print(f"⚠ 本地没有权重 {local_w}，VGGT 会尝试联网下载（可能很慢）")
+
     cmd = [sys.executable, "-u", VGGT_DEMO, f"--scene_dir={ws}",
            f"--camera_type={args.camera_type}"]
     if args.use_ba:

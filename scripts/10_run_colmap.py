@@ -113,6 +113,10 @@ def main():
     ap.add_argument("--scene", required=True)
     ap.add_argument("--use-gpu", type=int, default=0, help="1=SIFT 用 GPU（需 CUDA 版本匹配）")
     ap.add_argument("--overlap", type=int, default=10, help="sequential_matcher 的帧间隔")
+    ap.add_argument("--matcher", default="auto", choices=["auto", "sequential", "exhaustive"],
+                    help="auto = 图片数 <= exhaustive-max 时用 exhaustive（小样本连通性更好）")
+    ap.add_argument("--exhaustive-max", type=int, default=150,
+                    help="auto 模式下超过这个图片数就改用 sequential")
     ap.add_argument("--max-image-size", type=int, default=1600)
     ap.add_argument("--force", action="store_true", help="覆盖已有结果")
     ap.add_argument("--image-list", default=None,
@@ -189,13 +193,32 @@ def main():
     if rc != 0:
         sys.exit(f"特征提取失败，看 {log}")
 
-    # 2) 顺序匹配（我们的数据是视频序列，用 sequential 比 exhaustive 快得多）
-    rc, dt = run([COLMAP_EXE, "sequential_matcher", "--database_path", db,
-                  "--SequentialMatching.overlap", str(args.overlap),
-                  "--SequentialMatching.quadratic_overlap", "1",
-                  "--SequentialMatching.loop_detection", "0",
-                  f"--{fm_prefix}.use_gpu", str(args.use_gpu)], log)
-    print(f"  [2/3] sequential_matcher {dt:6.1f}s  rc={rc}")
+    # 2) 匹配器
+    #    ★ 小样本（稀疏子集）必须用 exhaustive，不能用 sequential：
+    #      我们的 p1_n50 是从 306 帧里均匀抽出来的 89 张，相邻两个文件在原视频里
+    #      虽然只隔 1~5 帧，但 overlap=10 只连"列表上相邻的 10 张"，
+    #      实测这样重建出来的模型是畸变的（相机中心 RMS 13.2%、track 平均仅 7.5、
+    #      只有 3783 个点），3DGS 训练 PSNR 直接掉到 17.6 dB。
+    #      exhaustive 对 89 张图只有 C(89,2)=3916 对，256² 图上很快，连通性好得多。
+    n_match = 0
+    if os.path.isdir(os.path.join(ws, "images")):
+        n_match = len([f for f in os.listdir(os.path.join(ws, "images"))
+                       if f.lower().endswith(IMAGE_EXTS)])
+    use_exhaustive = args.matcher == "exhaustive" or (
+        args.matcher == "auto" and 0 < n_match <= args.exhaustive_max)
+
+    if use_exhaustive:
+        rc, dt = run([COLMAP_EXE, "exhaustive_matcher", "--database_path", db,
+                      "--ExhaustiveMatching.block_size", "50",
+                      f"--{fm_prefix}.use_gpu", str(args.use_gpu)], log)
+        print(f"  [2/3] exhaustive_matcher {dt:6.1f}s  rc={rc}  （{n_match} 张图）")
+    else:
+        rc, dt = run([COLMAP_EXE, "sequential_matcher", "--database_path", db,
+                      "--SequentialMatching.overlap", str(args.overlap),
+                      "--SequentialMatching.quadratic_overlap", "1",
+                      "--SequentialMatching.loop_detection", "0",
+                      f"--{fm_prefix}.use_gpu", str(args.use_gpu)], log)
+        print(f"  [2/3] sequential_matcher {dt:6.1f}s  rc={rc}  （{n_match} 张图）")
     if rc != 0:
         sys.exit(f"匹配失败，看 {log}")
 

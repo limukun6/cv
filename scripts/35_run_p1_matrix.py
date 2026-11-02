@@ -121,6 +121,24 @@ def count_png(d):
     return sum(1 for f in os.listdir(d) if f.lower().endswith((".png", ".jpg")))
 
 
+def clean_poses(ws, tag):
+    """剔除跑飞的相机。
+
+    ★ 这一步不能省。COLMAP 在稀疏子集上偶发单个相机位置发散（实测某次飞到 7.2e9），
+      3DGS 用所有相机中心算 radius 做场景归一化 → 尺度被污染 9 个数量级 →
+      训练完全练废但**日志不报错**。实测同一个 89 帧模型：
+          清理前 3000 轮 PSNR 15.18，清理后 28.15。
+    """
+    model = os.path.join(ws, "sparse", "0")
+    if not os.path.isdir(model):
+        return
+    cleaner = os.path.join(ROOT, "scripts", "12_clean_colmap_model.py")
+    rc, _ = sh([PY, cleaner, "--model", model, "--inplace", "--max-factor", "10"],
+               os.path.join(ws, "clean.log"))
+    if rc != 0:
+        print(f"  [{tag}] ⚠ 离群相机清理失败（不影响继续，但结果可能异常）")
+
+
 # ---------------------------------------------------------------- stages
 
 def ensure_poses(scene, n, src_kind, pose_list, force=False):
@@ -144,6 +162,7 @@ def ensure_poses(scene, n, src_kind, pose_list, force=False):
             return None, 0
         with open(tfile, "w") as f:
             f.write(f"{dt:.1f}\n")
+        clean_poses(ws, "colmap")
         return ws, dt
 
     else:  # vggt / vggt_ba
@@ -162,6 +181,7 @@ def ensure_poses(scene, n, src_kind, pose_list, force=False):
         print(f"  [{src_kind}] rc={rc} {dt/60:.1f} min")
         if rc != 0:
             return None, 0
+        clean_poses(ws, src_kind)
         return ws, dt
 
 
@@ -296,7 +316,11 @@ def main():
             failed.append((stage, scene, init, n, seed))
             continue
         tag = f"n{n}" if n != len(read_list(os.path.join(ROOT, "data", scene, "splits", "full.txt"))) else "full"
-        row = train_and_eval(scene, init, scene_dir, train_p, pose_p.replace("_pose", ""),
+        # ★ 测试列表必须是**场景固定的 test.txt**，不是训练列表。
+        #   踩过的坑：这里原本写的是 pose_p.replace("_pose","")，把训练集当成了测试集，
+        #   结果是"训练 20 帧 / 测试 20 帧"，评测完全错位。
+        test_p = os.path.join(ROOT, "data", scene, "splits", "test.txt")
+        row = train_and_eval(scene, init, scene_dir, train_p, test_p,
                              n_tr, n_te, t_init, args.iterations, seed=seed, tag=tag,
                              resolution=res_for(scene),
                              test_iterations=TEST_ITER if args.iterations >= 30000 else None)
