@@ -1,0 +1,29 @@
+run_id,scene,part,source,split,train_frames,test_frames,psnr,ssim,lpips,train_psnr,ate_rmse,t_init_s,t_train_s,t_eval_s,gpu,git_commit,notes
+dl3dv-2__colmap__full__3dgs__20261029-1814,dl3dv-2,P1,colmap,full,267,39,33.8932,0.9675,0.0419,34.6080,,98.4,2370.0,352.0,RTX 5070 Laptop,7cc0523,30k iter; --eval; 256x256 native; ~420k gaussians at 7k; LPIPS=vgg/0-1
+re10k-1__colmap__full__3dgs__20261030-0937,re10k-1,P1,colmap,full,244,35,34.3487,0.9817,0.0207,34.6918,,216.0,678.0,9.1,RTX 5070 Laptop,441fbb9,30k iter; --eval; 256x256 native; convergence curve logged; LPIPS=vgg/0-1
+dl3dv-2__colmap__full__3dgs__20261030-0952,dl3dv-2,P1,colmap,full,267,39,33.4117,0.9657,0.0457,34.4900,,98.4,1104.0,9.1,RTX 5070 Laptop,586d0cc,30k iter; --eval; convergence curve logged; LPIPS=vgg/0-1; repeat of 1814 run (variance +0.48dB)
+dl3dv-2__colmap__full__3dgs__seed1__20261030-1203,dl3dv-2,P1,colmap,full,267,39,33.1737,0.9652,0.0467,33.1950,,98.4,~700.0,9.1,RTX 5070 Laptop,586d0cc,seed=1; noise-floor experiment; LPIPS=vgg/0-1
+dl3dv-2__colmap__full__3dgs__seed2__20261030-2044,dl3dv-2,P1,colmap,full,267,39,32.9997,0.9637,0.0475,33.2607,,,561.4,6.3,RTX 5070 Laptop,seed-sweep,seed=2; noise-floor experiment; LPIPS=vgg/0-1
+dl3dv-2__colmap__full__3dgs__seed3__20261030-2054,dl3dv-2,P1,colmap,full,267,39,33.5716,0.9674,0.0424,34.3585,,,553.0,6.3,RTX 5070 Laptop,seed-sweep,seed=3; noise-floor experiment; LPIPS=vgg/0-1
+re10k-1__colmap__full__3dgs__seed1__20261030-2103,re10k-1,P1,colmap,full,244,35,34.339,0.9817,0.0204,35.3443,,,506.8,6.0,RTX 5070 Laptop,seed-sweep,seed=1; noise-floor experiment; LPIPS=vgg/0-1
+re10k-1__colmap__full__3dgs__seed2__20261030-2112,re10k-1,P1,colmap,full,244,35,34.2694,0.9815,0.0208,35.002,,,515.4,5.8,RTX 5070 Laptop,seed-sweep,seed=2; noise-floor experiment; LPIPS=vgg/0-1
+re10k-1__colmap__full__3dgs__seed3__20261030-2121,re10k-1,P1,colmap,full,244,35,34.3934,0.9816,0.0208,34.9396,,,511.4,5.9,RTX 5070 Laptop,seed-sweep,seed=3; noise-floor experiment; LPIPS=vgg/0-1
+waymo-405841__colmap__full__3dgs__20261030-2148,waymo-405841,P1,colmap,full,154,21,35.2595,0.9647,0.0784,33.1376,,838.0,1044.0,11.0,RTX 5070 Laptop,ed86c4f,30k iter; -r 4 (480x320); 21 test views = test.txt & model; LPIPS=vgg/0-1
+waymo-405841__colmap__full__3dgs__seed2__20261030-2214,waymo-405841,P1,colmap,full,154,21,35.1422,0.9644,0.076,36.4613,,,1036.3,6.2,RTX 5070 Laptop,seed-sweep,30k iter; -r 4 (480x320); 21 test views = test.txt & model; LPIPS=vgg/0-1
+waymo-405841__colmap__full__3dgs__seed3__20261030-2231,waymo-405841,P1,colmap,full,154,21,35.4654,0.9651,0.076,35.2181,,,1015.9,6.3,RTX 5070 Laptop,seed-sweep,30k iter; -r 4 (480x320); 21 test views = test.txt & model; LPIPS=vgg/0-1
+dl3dv-2__colmap__sparse10__3dgs__20261030-2301,dl3dv-2,P2,colmap(gt-pose),sparse10,23,39,20.5978,0.7549,0.2222,42.2556,,0,530.8,5.5,RTX 5070 Laptop,sparse-sweep,oracle-pose upper bound; init pts from full COLMAP; LPIPS=vgg/0-1
+dl3dv-2__colmap__sparse30__3dgs__20261030-2310,dl3dv-2,P2,colmap(gt-pose),sparse30,8,39,16.378,0.5757,0.3533,50.4263,,0,407.5,6.1,RTX 5070 Laptop,sparse-sweep,oracle-pose upper bound; init pts from full COLMAP; LPIPS=vgg/0-1
+re10k-1__colmap__sparse10__3dgs__20261030-2317,re10k-1,P2,colmap(gt-pose),sparse10,21,35,29.6724,0.9422,0.0567,39.2706,,0,466.4,6.0,RTX 5070 Laptop,sparse-sweep,oracle-pose upper bound; init pts from full COLMAP; LPIPS=vgg/0-1
+re10k-1__colmap__sparse30__3dgs__20261030-2325,re10k-1,P2,colmap(gt-pose),sparse30,7,35,22.5503,0.8234,0.1557,48.3779,,0,383.4,6.0,RTX 5070 Laptop,sparse-sweep,oracle-pose upper bound; init pts from full COLMAP; LPIPS=vgg/0-1
+waymo-405841__colmap__sparse10__3dgs__20261030-2336,waymo-405841,P2,colmap(gt-pose),sparse10,13,21,24.5876,0.8186,0.1898,45.9546,,0,918.3,6.4,RTX 5070 Laptop,sparse-sweep,oracle-pose upper bound; 13 train (2 missing from model); LPIPS=vgg/0-1; -r 4
+waymo-405841__colmap__sparse30__3dgs__20261030-2352,waymo-405841,P2,colmap(gt-pose),sparse30,4,21,18.3830,0.6228,0.3411,51.9044,,0,653.7,6.2,RTX 5070 Laptop,sparse-sweep,oracle-pose upper bound; 4 train (1 missing from model); LPIPS=vgg/0-1; -r 4
+dl3dv-2__colmap__n20__3dgs__20261102-2142,dl3dv-2,P1,colmap,n20,20,39,28.19,0.9044,0.1363,,,19.9,26.7,105.2,rented,p1-matrix,N=20 train / 39 test; poses from colmap; LPIPS=vgg/0-1
+dl3dv-2__colmap__n50__3dgs__20261102-2207,dl3dv-2,P1,colmap,n50,50,39,17.6022,0.6202,0.3986,19.3872,,56.7,462.3,9.2,rented,p1-matrix,N=50 train / 39 test; poses from colmap; LPIPS=vgg/0-1
+dl3dv-2__vggt__n50__3dgs__20261102-2215,dl3dv-2,P1,vggt,n50,50,39,19.2231,0.6763,0.234,31.0383,,70.6,397.8,8.6,rented,p1-matrix,N=50 train / 39 test; poses from vggt; LPIPS=vgg/0-1
+dl3dv-2__colmap__n50__3dgs__20261102-2225,dl3dv-2,P1,colmap,n50,50,39,15.178,0.5712,0.4572,,,56.7,28.0,8.1,rented,p1-matrix,N=50 train / 39 test; poses from colmap; LPIPS=vgg/0-1
+dl3dv-2__vggt__n50__3dgs__20261102-2228,dl3dv-2,P1,vggt,n50,50,39,19.0295,0.6994,0.2857,,,0.0,38.6,9.7,rented,p1-matrix,N=50 train / 39 test; poses from vggt; LPIPS=vgg/0-1
+dl3dv-2__colmap__n50__3dgs__20261102-2241,dl3dv-2,P1,colmap,n50,50,39,21.6717,0.7635,0.195,35.6064,,0.0,325.0,8.7,rented,p1-matrix,N=50 train / 39 test; poses from colmap; LPIPS=vgg/0-1
+dl3dv-2__vggt__n50__3dgs__20261102-2247,dl3dv-2,P1,vggt,n50,50,39,19.6296,0.6861,0.2271,29.192,,70.6,380.0,9.2,rented,p1-matrix,N=50 train / 39 test; poses from vggt; LPIPS=vgg/0-1
+re10k-1__colmap__n50__3dgs__20261102-2326,re10k-1,P1,colmap,n50,50,35,32.7474,0.9746,0.028,35.936,,182.6,293.2,8.1,rented,p1-matrix,N=50 train / 35 test; poses from colmap; LPIPS=vgg/0-1
+waymo-405841__colmap__n50__3dgs__20261102-2359,waymo-405841,P1,colmap,n50,50,25,32.6535,0.9397,0.0841,37.6119,,0.0,511.0,7.8,rented,p1-matrix,N=50 train / 25 test; poses from colmap; LPIPS=vgg/0-1; -r 4
+waymo-405841__vggt__n50__3dgs__20261103-0009,waymo-405841,P1,vggt,n50,50,25,22.7101,0.7014,0.2425,38.6192,,83.4,498.1,7.5,rented,p1-matrix,N=50 train / 25 test; poses from vggt; LPIPS=vgg/0-1; -r 4

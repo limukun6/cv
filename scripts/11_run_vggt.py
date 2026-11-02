@@ -75,6 +75,13 @@ def main():
                     help="所有帧共用一个相机（我们的数据都是单相机，默认开）")
     ap.add_argument("--force", action="store_true")
     ap.add_argument("--weights", default=None)
+    # ★ --use-ba 的跟踪阶段（lightglue 的 grid_sampler）显存需求远大于纯推理：
+    #   实测 89 帧 + BA 时要一次性分配 6.73 GB，和别的任务并发就会 OOM。
+    #   这两个参数是官方 demo 暴露的减压旋钮。
+    ap.add_argument("--max-query-pts", type=int, default=None,
+                    help="每帧查询点数，越小越省显存（官方默认 4096）")
+    ap.add_argument("--query-frame-num", type=int, default=None,
+                    help="查询帧数，越小越省显存（官方默认 8）")
     args = ap.parse_args()
 
     if not os.path.isfile(VGGT_DEMO):
@@ -135,6 +142,10 @@ def main():
         cmd.append("--use_ba")
     if args.shared_camera:
         cmd.append("--shared_camera")
+    if args.max_query_pts:
+        cmd.append(f"--max_query_pts={args.max_query_pts}")
+    if args.query_frame_num:
+        cmd.append(f"--query_frame_num={args.query_frame_num}")
 
     print("运行:", " ".join(cmd))
     t0 = time.time()
