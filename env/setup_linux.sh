@@ -219,10 +219,30 @@ PY
 echo
 echo "[4/7] 编译 3DGS 的 CUDA 扩展"
 if [ ! -d third_party/gaussian-splatting ]; then
-    git clone --recursive --depth 1 \
+    git clone --depth 1 \
         https://github.com/graphdeco-inria/gaussian-splatting.git \
         third_party/gaussian-splatting
 fi
+
+# ★ 不要用 `git clone --recursive`！
+#   3DGS 的 .gitmodules 里有一个 SIBR_viewers，指向 gitlab.inria.fr/sibr/sibr_core.git —
+#   那是个巨大的 C++ 可视化工程，我们**完全不需要**（只用 python 训练/渲染）。
+#   实测：recursive 克隆会在它上面卡 >4 分钟甚至挂死。
+#   所以只手动拉真正要编译的三个子模块。
+GS=third_party/gaussian-splatting
+clone_sub() {   # clone_sub <目录> <url>
+    local d="$1" u="$2"
+    if [ -f "$d/setup.py" ] || [ -f "$d/CMakeLists.txt" ]; then
+        return 0
+    fi
+    rm -rf "$d"
+    git clone --depth 1 "$u" "$d" 2>&1 | tail -2 || echo "  ⚠ 克隆失败: $u"
+}
+clone_sub "$GS/submodules/diff-gaussian-rasterization" https://github.com/graphdeco-inria/diff-gaussian-rasterization.git
+clone_sub "$GS/submodules/simple-knn"                 https://gitlab.inria.fr/bkerbl/simple-knn.git
+clone_sub "$GS/submodules/fused-ssim"                 https://github.com/rahul-goel/fused-ssim.git
+# diff-gaussian-rasterization 内部还依赖 glm
+clone_sub "$GS/submodules/diff-gaussian-rasterization/third_party/glm" https://github.com/g-truc/glm.git
 
 # 架构列表：Linux 上 torch 的 cpp_extension 会用 TORCH_CUDA_ARCH_LIST，不设的话
 # 它会枚举机器上所有可见卡，通常也没问题；显式指定更快也更容易复现。
