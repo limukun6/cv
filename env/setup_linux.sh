@@ -99,29 +99,39 @@ python -m pip install -q --upgrade pip wheel setuptools
 echo
 echo "[3/7] PyTorch"
 
-# 如果镜像自带的 torch 就是我们要的版本（2.8.x + CUDA 12.8），直接复用。
-# 好处：省 2.5 GB 下载 + 5~10 分钟。AutoDL 的 "PyTorch 2.8.0 / CUDA 12.8" 镜像正好符合。
-# 想强制重装就 REUSE_TORCH=0。
+# ★ 核心原则：**torch 的 CUDA 版本要和镜像里的 nvcc 对齐**
+#   3DGS 的三个扩展要用本机 nvcc 编译，而它们链接的是 torch 自带的 CUDA 运行时。
+#   两者主版本必须一致，次版本不一致会告警（通常能用，但不干净）。
+#   所以：
+#     · 镜像自带 torch 且 nvcc 主版本一致 → 直接复用（省 2.5 GB 下载）
+#     · 没 torch / 版本太老 → 按 nvcc 的次版本装对应的 cuXXX 轮子
+NVCC_REL=$(nvcc --version 2>/dev/null | grep -o 'release [0-9.]*' | awk '{print $2}')
+NVCC_MAJOR=$(echo "${NVCC_REL:-12.4}" | awk -F. '{print $1}')
+CU_TAG=$(echo "${NVCC_REL:-12.4}" | awk -F. '{print $1$2}')     # 12.4 -> 124
+echo "  镜像 nvcc: ${NVCC_REL:-未知}  → CUDA 轮子标签 cu${CU_TAG}"
+
 SYS_TORCH=$($PYBIN -c "import torch;print(torch.__version__)" 2>/dev/null || echo "none")
 SYS_CUDA=$($PYBIN -c "import torch;print(torch.version.cuda or '')" 2>/dev/null || echo "")
-echo "  镜像自带 torch: $SYS_TORCH (cuda $SYS_CUDA)"
+echo "  镜像自带 torch: $SYS_TORCH (cuda ${SYS_CUDA:-无})"
 
 REUSE_TORCH=${REUSE_TORCH:-auto}
 if [ "$REUSE_TORCH" = "auto" ]; then
-    case "$SYS_TORCH" in
-        2.8.*)
-            case "$SYS_CUDA" in
-                12.8*) REUSE_TORCH=1 ;;
-                *)     REUSE_TORCH=0 ;;
-            esac ;;
-        *) REUSE_TORCH=0 ;;
-    esac
+    REUSE_TORCH=0
+    if [ "$SYS_TORCH" != "none" ]; then
+        TMINOR=$(echo "$SYS_TORCH" | sed 's/[^0-9.].*//' | awk -F. '{print $1"."$2}')
+        TMAJ=$(echo "${SYS_CUDA}" | awk -F. '{print $1}')
+        # torch >= 2.4，且 CUDA 主版本和 nvcc 一致，就复用
+        if [ "$(printf '%s\n2.4\n' "$TMINOR" | sort -V | head -1)" = "2.4" ] && \
+           [ "${TMAJ:-x}" = "${NVCC_MAJOR}" ]; then
+            REUSE_TORCH=1
+        fi
+    fi
+    echo "  → 自动判定 REUSE_TORCH=$REUSE_TORCH"
 fi
 
 if [ "$REUSE_TORCH" = "1" ]; then
-    echo "  → 复用镜像自带的 torch（省 2.5 GB 下载）"
-    # 注意：venv 必须带 --system-site-packages 才看得见镜像里的 torch。
-    # 如果第 2 步已经建好了普通 venv，这里重建一个。
+    echo "  复用镜像自带的 torch ${SYS_TORCH}+cu${SYS_CUDA}（省 2.5 GB 下载，且与 nvcc ${NVCC_REL} 对齐）"
+    # venv 必须带 --system-site-packages 才看得见镜像里的 torch
     if [ ! -f .venv/.reuse_torch ]; then
         rm -rf .venv
         $PYBIN -m venv --system-site-packages .venv
@@ -137,13 +147,24 @@ assert torch.cuda.is_available(), "CUDA 不可用"
 x = torch.randn(512, 512, device="cuda"); (x @ x).sum().item()
 print("  KERNEL TEST: PASS")
 PY
-    pip install -q torchvision 2>/dev/null || true
 else
-    # 4090/4090D/3090 都是 sm_89/sm_86，cu128 轮子覆盖；cu128 也覆盖到 sm_120，
-    # 将来换 Blackwell 卡能继续用同一套命令。
-    echo "  → 安装 torch 2.8.0 + cu128"
-    pip install -q torch==2.8.0 torchvision --index-url https://download.pytorch.org/whl/cu128 || \
+    if [ -f .venv/.reuse_torch ]; then
+        rm -rf .venv
+        $PYBIN -m venv .venv
+        # shellcheck disable=SC1091
+        source .venv/bin/activate
+    fi
+    echo "  安装 torch（cu${CU_TAG}，与镜像 nvcc 对齐）"
+    pip install -q torch torchvision --index-url "https://download.pytorch.org/whl/cu${CU_TAG}" || \
     pip install -q torch torchvision
+    python - <<'PY'
+import torch
+print("  torch", torch.__version__, "cuda", torch.version.cuda)
+print("  arch list:", torch.cuda.get_arch_list())
+assert torch.cuda.is_available(), "CUDA 不可用"
+x = torch.randn(512, 512, device="cuda"); (x @ x).sum().item()
+print("  KERNEL TEST: PASS")
+PY
 fi
 
 python - <<'PY'
