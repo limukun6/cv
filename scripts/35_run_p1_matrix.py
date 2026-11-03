@@ -267,10 +267,20 @@ def main():
     ap.add_argument("--force", action="store_true")
     args = ap.parse_args()
 
-    # 每个场景的分辨率：Waymo 默认降采样
+    # 每个场景的降采样倍数，优先级：
+    #   --resolution 命令行 > meta.yaml 里的 `resolution:` > 按场景名的默认值
+    # 为什么要按场景区分：256² 的 DL3DV/Re10k 不需要降采样，
+    # 而 Waymo 1920×1280、T&T 1920×1080 在 24 GB 卡上必须降，否则显存和耗时都吃不消。
     def res_for(scene):
         if args.resolution:
             return args.resolution
+        meta = os.path.join(ROOT, "data", scene, "meta.yaml")
+        if os.path.isfile(meta):
+            for line in open(meta, encoding="utf-8-sig"):
+                if line.strip().startswith("resolution:"):
+                    v = line.split(":", 1)[1].strip()
+                    if v.isdigit():
+                        return int(v)
         return 4 if scene == "waymo-405841" else None
 
     print(f"{'='*72}\nPart 1 实验矩阵\n{'='*72}")
