@@ -141,12 +141,29 @@ def clean_poses(ws, tag):
 
 # ---------------------------------------------------------------- stages
 
+def bundled_model(scene):
+    """数据集自带 COLMAP 模型吗？（Tanks&Temples / Deep Blending / Mip-NeRF 360 都自带）
+
+    自带的就不用再跑一遍 SfM：直接把场景目录本身当 'colmap' 初始化。
+    这样额外数据集实验能省掉一次 COLMAP（1920×1080 上要十几分钟）。
+    """
+    meta = os.path.join(ROOT, "data", scene, "meta.yaml")
+    if os.path.isfile(meta):
+        for line in open(meta, encoding="utf-8-sig"):
+            if line.strip().startswith("source:") and "benchmark" in line:
+                return True
+    return False
+
+
 def ensure_poses(scene, n, src_kind, pose_list, force=False):
     """准备某个初始化来源的场景目录，返回 (scene_dir, t_init_seconds)。"""
     sd = os.path.join(ROOT, "data", scene)
     tag = f"n{n}" if n else "full"
 
     if src_kind == "colmap":
+        if bundled_model(scene):
+            print(f"  [colmap] {scene} 自带 COLMAP 模型，直接使用（不重跑 SfM）")
+            return sd, 0.0
         out_name = f"colmap_{tag}"
         ws = os.path.join(sd, out_name)
         tfile = os.path.join(ws, "colmap_time.txt")
