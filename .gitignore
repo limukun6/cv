@@ -95,3 +95,6 @@ _*.png
 
 # 临时下载
 _dl/
+
+# Demo 视频（体积大，单独传网盘/Canvas）
+docs/videos/

@@ -98,14 +98,24 @@ def main():
     print(f"  图片 {n} 张（来自 {os.path.relpath(img_dir, ROOT)}）")
 
     # 2) COLMAP 模型
+    #    要写两份，因为两边约定不同：
+    #      · `sparse/0/`        —— 3DGS 的 train.py 只认这个（-s <scene> 时会找 <scene>/sparse/0）
+    #      · `colmap/sparse/0/` —— 我们自己的脚本（如 46_ate.py）用这个路径
+    #    只写 colmap/ 那份会导致 3DGS 报 "Could not recognize scene type!"（已踩过）。
     sp = find_sparse(src)
     if sp:
-        out_sp = os.path.join(dst, "colmap", "sparse", "0")
-        os.makedirs(out_sp, exist_ok=True)
+        out_3dgs = os.path.join(dst, "sparse", "0")
+        out_ours = os.path.join(dst, "colmap", "sparse", "0")
+        os.makedirs(out_3dgs, exist_ok=True)
+        os.makedirs(os.path.dirname(out_ours), exist_ok=True)
         for f in os.listdir(sp):
             if f.endswith(".bin"):
-                shutil.copy2(os.path.join(sp, f), os.path.join(out_sp, f))
-        print(f"  COLMAP 模型已复制: {os.listdir(out_sp)}")
+                shutil.copy2(os.path.join(sp, f), os.path.join(out_3dgs, f))
+        # 我们的路径做成符号链接，避免同一份模型存两次
+        if not os.path.exists(out_ours):
+            os.symlink(os.path.relpath(out_3dgs, os.path.dirname(out_ours)), out_ours)
+        print(f"  COLMAP 模型: sparse/0 = {sorted(os.listdir(out_3dgs))}")
+        print(f"              colmap/sparse/0 → 符号链接")
     else:
         print("  ⚠ 源里没有 COLMAP 模型，需要自己跑 scripts/10_run_colmap.py")
 
@@ -113,6 +123,10 @@ def main():
     meta = [
         f"scene: {args.name}",
         "source: 3dgs-benchmark",
+        # 默认**不**直接用数据集自带的位姿：那样拿不到 SfM 初始化耗时，
+        # 而且协议和必做场景（只用 89 帧估位姿）不一致。
+        # 想省时间再改成 true。
+        "bundled_poses: false",
         "image_subdir: images",
     ]
     if args.resolution:

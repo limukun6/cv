@@ -17,3 +17,34 @@ re10k-1__colmap__sparse10__3dgs__20261030-2317,re10k-1,P2,colmap(gt-pose),sparse
 re10k-1__colmap__sparse30__3dgs__20261030-2325,re10k-1,P2,colmap(gt-pose),sparse30,7,35,22.5503,0.8234,0.1557,48.3779,,0,383.4,6.0,RTX 5070 Laptop,sparse-sweep,oracle-pose upper bound; init pts from full COLMAP; LPIPS=vgg/0-1
 waymo-405841__colmap__sparse10__3dgs__20261030-2336,waymo-405841,P2,colmap(gt-pose),sparse10,13,21,24.5876,0.8186,0.1898,45.9546,,0,918.3,6.4,RTX 5070 Laptop,sparse-sweep,oracle-pose upper bound; 13 train (2 missing from model); LPIPS=vgg/0-1; -r 4
 waymo-405841__colmap__sparse30__3dgs__20261030-2352,waymo-405841,P2,colmap(gt-pose),sparse30,4,21,18.3830,0.6228,0.3411,51.9044,,0,653.7,6.2,RTX 5070 Laptop,sparse-sweep,oracle-pose upper bound; 4 train (1 missing from model); LPIPS=vgg/0-1; -r 4
+dl3dv-2__colmap__n20__3dgs__20261102-2142,dl3dv-2,P1,colmap,n20,20,39,28.19,0.9044,0.1363,,,19.9,26.7,105.2,rented,p1-matrix,N=20 train / 39 test; poses from colmap; LPIPS=vgg/0-1
+dl3dv-2__colmap__n50__3dgs__20261102-2207,dl3dv-2,P1,colmap,n50,50,39,17.6022,0.6202,0.3986,19.3872,,56.7,462.3,9.2,rented,p1-matrix,N=50 train / 39 test; poses from colmap; LPIPS=vgg/0-1
+dl3dv-2__vggt__n50__3dgs__20261102-2215,dl3dv-2,P1,vggt,n50,50,39,19.2231,0.6763,0.234,31.0383,,70.6,397.8,8.6,rented,p1-matrix,N=50 train / 39 test; poses from vggt; LPIPS=vgg/0-1
+dl3dv-2__colmap__n50__3dgs__20261102-2225,dl3dv-2,P1,colmap,n50,50,39,15.178,0.5712,0.4572,,,56.7,28.0,8.1,rented,p1-matrix,N=50 train / 39 test; poses from colmap; LPIPS=vgg/0-1
+dl3dv-2__vggt__n50__3dgs__20261102-2228,dl3dv-2,P1,vggt,n50,50,39,19.0295,0.6994,0.2857,,,0.0,38.6,9.7,rented,p1-matrix,N=50 train / 39 test; poses from vggt; LPIPS=vgg/0-1
+dl3dv-2__colmap__n50__3dgs__20261102-2241,dl3dv-2,P1,colmap,n50,50,39,21.6717,0.7635,0.195,35.6064,,0.0,325.0,8.7,rented,p1-matrix,N=50 train / 39 test; poses from colmap; LPIPS=vgg/0-1
+dl3dv-2__vggt__n50__3dgs__20261102-2247,dl3dv-2,P1,vggt,n50,50,39,19.6296,0.6861,0.2271,29.192,,70.6,380.0,9.2,rented,p1-matrix,N=50 train / 39 test; poses from vggt; LPIPS=vgg/0-1
+re10k-1__colmap__n50__3dgs__20261102-2326,re10k-1,P1,colmap,n50,50,35,32.7474,0.9746,0.028,35.936,,182.6,293.2,8.1,rented,p1-matrix,N=50 train / 35 test; poses from colmap; LPIPS=vgg/0-1
+waymo-405841__colmap__n50__3dgs__20261102-2359,waymo-405841,P1,colmap,n50,50,25,32.6535,0.9397,0.0841,37.6119,,0.0,511.0,7.8,rented,p1-matrix,N=50 train / 25 test; poses from colmap; LPIPS=vgg/0-1; -r 4
+waymo-405841__vggt__n50__3dgs__20261103-0009,waymo-405841,P1,vggt,n50,50,25,22.7101,0.7014,0.2425,38.6192,,83.4,498.1,7.5,rented,p1-matrix,N=50 train / 25 test; poses from vggt; LPIPS=vgg/0-1; -r 4
+dl3dv-2__colmap__n50__seed1__20261103-0942,dl3dv-2,P1,colmap,n50,50,39,22.1169,0.772,0.1875,34.5304,,0.0,306.7,9.0,rented,p1-matrix,N=50 train / 39 test; poses from colmap; LPIPS=vgg/0-1; seed=1
+dl3dv-2__vggt__n50__seed1__20261103-0948,dl3dv-2,P1,vggt,n50,50,39,19.5964,0.6895,0.2252,30.2333,,70.6,490.1,8.6,rented,p1-matrix,N=50 train / 39 test; poses from vggt; LPIPS=vgg/0-1; seed=1
+dl3dv-2__colmap__n50__seed2__20261103-0956,dl3dv-2,P1,colmap,n50,50,39,22.4208,0.7803,0.1807,33.822,,0.0,315.0,10.8,rented,p1-matrix,N=50 train / 39 test; poses from colmap; LPIPS=vgg/0-1; seed=2
+dl3dv-2__vggt__n50__seed2__20261103-1002,dl3dv-2,P1,vggt,n50,50,39,18.9542,0.6761,0.2338,32.4309,,70.6,427.9,8.1,rented,p1-matrix,N=50 train / 39 test; poses from vggt; LPIPS=vgg/0-1; seed=2
+re10k-1__colmap__n50__seed1__20261103-1010,re10k-1,P1,colmap,n50,50,35,32.6034,0.9733,0.0285,36.2508,,182.6,261.0,8.3,rented,p1-matrix,N=50 train / 35 test; poses from colmap; LPIPS=vgg/0-1; seed=1
+re10k-1__vggt__n50__seed1__20261103-1014,re10k-1,P1,vggt,n50,50,35,26.7644,0.9193,0.0557,32.0025,,77.5,416.2,9.4,rented,p1-matrix,N=50 train / 35 test; poses from vggt; LPIPS=vgg/0-1; seed=1
+re10k-1__colmap__n50__seed2__20261103-1022,re10k-1,P1,colmap,n50,50,35,32.6166,0.9738,0.0306,35.3922,,182.6,265.9,10.8,rented,p1-matrix,N=50 train / 35 test; poses from colmap; LPIPS=vgg/0-1; seed=2
+re10k-1__vggt__n50__seed2__20261103-1027,re10k-1,P1,vggt,n50,50,35,26.7253,0.9191,0.0564,31.4307,,77.5,418.1,10.1,rented,p1-matrix,N=50 train / 35 test; poses from vggt; LPIPS=vgg/0-1; seed=2
+waymo-405841__colmap__n50__seed1__20261103-1034,waymo-405841,P1,colmap,n50,50,25,32.0425,0.9357,0.0894,37.4101,,0.0,471.2,8.9,rented,p1-matrix,N=50 train / 25 test; poses from colmap; LPIPS=vgg/0-1; seed=1; -r 4
+waymo-405841__vggt__n50__seed1__20261103-1042,waymo-405841,P1,vggt,n50,50,25,22.6861,0.7029,0.2415,38.6398,,83.4,517.9,8.8,rented,p1-matrix,N=50 train / 25 test; poses from vggt; LPIPS=vgg/0-1; seed=1; -r 4
+waymo-405841__colmap__n50__seed2__20261103-1052,waymo-405841,P1,colmap,n50,50,25,32.2108,0.9372,0.0869,37.0869,,0.0,474.8,8.0,rented,p1-matrix,N=50 train / 25 test; poses from colmap; LPIPS=vgg/0-1; seed=2; -r 4
+waymo-405841__vggt__n50__seed2__20261103-1100,waymo-405841,P1,vggt,n50,50,25,22.7346,0.7038,0.2431,37.6522,,83.4,509.4,7.4,rented,p1-matrix,N=50 train / 25 test; poses from vggt; LPIPS=vgg/0-1; seed=2; -r 4
+m360-counter__colmap__n50__3dgs__20261103-1128,m360-counter,P1,colmap,n50,50,30,25.4035,0.8571,0.1561,34.1213,,0.0,518.7,9.1,rented,p1-matrix,N=50 train / 30 test; poses from colmap; LPIPS=vgg/0-1; -r 2
+m360-counter__vggt__n50__3dgs__20261103-1138,m360-counter,P1,vggt,n50,50,30,21.2964,0.6517,0.2874,30.9667,,71.2,523.5,9.8,rented,p1-matrix,N=50 train / 30 test; poses from vggt; LPIPS=vgg/0-1; -r 2
+m360-kitchen__colmap__n50__3dgs__20261103-1201,m360-kitchen,P1,colmap,n50,50,35,27.2734,0.8996,0.1062,37.0134,,782.0,629.1,9.3,rented,p1-matrix,N=50 train / 35 test; poses from colmap; LPIPS=vgg/0-1; -r 2
+m360-kitchen__vggt__n50__3dgs__20261103-1213,m360-kitchen,P1,vggt,n50,50,35,21.0764,0.5969,0.2688,28.8195,,99.2,684.8,10.0,rented,p1-matrix,N=50 train / 35 test; poses from vggt; LPIPS=vgg/0-1; -r 2
+m360-bonsai__colmap__n50__3dgs__20261103-1235,m360-bonsai,P1,colmap,n50,50,37,28.3323,0.9086,0.1305,36.4515,,583.4,492.5,10.3,rented,p1-matrix,N=50 train / 37 test; poses from colmap; LPIPS=vgg/0-1; -r 2
+m360-bonsai__vggt__n50__3dgs__20261103-1246,m360-bonsai,P1,vggt,n50,50,37,19.051,0.5176,0.4253,29.4429,,90.3,539.3,10.1,rented,p1-matrix,N=50 train / 37 test; poses from vggt; LPIPS=vgg/0-1; -r 2
+dl3dv-2__vggt_omega__n50__3dgs__20261103-1432,dl3dv-2,P1,vggt_omega,n50,50,39,22.5248,0.7625,0.1963,,,60.0,402.0,2.9,RTX 4090,omega-pipeline,N=50; VGGT-Omega 416-reproduce; 内参修正后重跑（首次 9.11dB 是内参 bug）
+re10k-1__vggt_omega__n50__3dgs__20261103-1441,re10k-1,P1,vggt_omega,n50,50,35,31.3076,0.9675,0.0307,,,71.0,393.9,15.8,RTX 4090,omega-pipeline,N=50; VGGT-Omega 416-reproduce; export+inference time; LPIPS=vgg/0-1
+waymo-405841__vggt_omega__n50__3dgs__20261103-1453,waymo-405841,P1,vggt_omega,n50,50,25,24.4327,0.7796,0.1934,,,0.0,551.4,8.5,RTX 4090,omega-pipeline,N=50; VGGT-Omega 416-reproduce; export+inference time; LPIPS=vgg/0-1

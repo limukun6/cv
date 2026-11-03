@@ -55,12 +55,36 @@ def cam_centers(extr):
     return {k: (-R.T @ t) for k, (R, t) in extr.items()}
 
 
-def load_reference(scene_dir):
+def load_waymo_gt(scene_dir, convention="c2w"):
+    """Waymo 的真值是**逐帧 4x4 文本矩阵**（`gt/000000.txt` ...），不是 COLMAP 格式。
+
+    第 0 帧平移为 0（世界原点），后续帧是真实平移。
+    约定用 `--gt-convention` 指定：c2w（默认，矩阵的平移列就是相机中心）
+    或 w2c（相机中心 = −Rᵀt）。
+    """
+    import glob
+    gd = os.path.join(scene_dir, "gt")
+    out = {}
+    for f in sorted(glob.glob(os.path.join(gd, "*.txt"))):
+        idx = os.path.splitext(os.path.basename(f))[0]
+        M = np.loadtxt(f)
+        if M.shape != (4, 4):
+            continue
+        R, t = M[:3, :3], M[:3, 3]
+        if convention == "c2w":
+            out[f"{idx}.png"] = (R, t)                 # R 是 c2w 旋转，t 是相机中心
+        else:
+            out[f"{idx}.png"] = (R.T, -R.T @ t)        # 转成 c2w
+    return out, f"gt/*.txt ({convention})"
+
+
+def load_reference(scene_dir, convention="c2w"):
     """读数据集真值位姿。
 
-    支持两种来源：
+    支持三种来源：
       1. cameras.json（DL3DV / Re10k 原生格式，已验证 quat=xyzw、方向=c2w）
-      2. gt/ 目录下的 COLMAP 模型（Waymo 用）
+      2. gt/ 下的逐帧 4x4 文本（Waymo）
+      3. gt/sparse/0 的 COLMAP 模型
     """
     cj = os.path.join(scene_dir, "cameras.json")
     if os.path.isfile(cj):
@@ -81,12 +105,17 @@ def load_reference(scene_dir):
             out[name] = (R, np.array(c["cam_trans"], dtype=float))   # c2w 的 R 和相机中心
         return out, "cameras.json"
 
+    import glob
+    gd = os.path.join(scene_dir, "gt")
+    if os.path.isdir(gd) and glob.glob(os.path.join(gd, "*.txt")):
+        return load_waymo_gt(scene_dir, convention)
+
     for cand in ("gt", "gt_old"):
         p = os.path.join(scene_dir, cand, "sparse", "0")
         if os.path.isdir(p):
             extr = load_colmap_model(p)
             return {k: (R.T, -R.T @ t) for k, (R, t) in extr.items()}, f"{cand}/sparse/0"
-    raise SystemExit(f"{scene_dir} 下既没有 cameras.json 也没有 gt/")
+    raise SystemExit(f"{scene_dir} 下既没有 cameras.json、也没有 gt/*.txt、也没有 gt/sparse/0")
 
 
 # ---------------------------------------------------------------- 对齐与评估
@@ -129,10 +158,10 @@ def align_rotation(R_est_list, R_gt_list):
     return U @ D @ Vt
 
 
-def evaluate(model_dir, scene_dir, verbose=True):
+def evaluate(model_dir, scene_dir, verbose=True, convention="c2w"):
     est = load_colmap_model(model_dir)
     est_c = cam_centers(est)
-    ref, ref_src = load_reference(scene_dir)
+    ref, ref_src = load_reference(scene_dir, convention=convention)
 
     common = sorted(set(est_c) & set(ref))
     if len(common) < 3:
@@ -201,11 +230,14 @@ def main():
     ap.add_argument("--model", required=True, help="COLMAP 模型目录（含 images.bin）")
     ap.add_argument("--data", default="data")
     ap.add_argument("--json", action="store_true", help="输出 JSON，方便写进表格")
+    ap.add_argument("--gt-convention", default="c2w", choices=["c2w", "w2c"],
+                    help="真值 4x4 矩阵的约定（Waymo 用；默认 c2w）")
     args = ap.parse_args()
 
     scene_dir = os.path.join(ROOT, args.data, args.scene)
     model_dir = args.model if os.path.isabs(args.model) else os.path.join(ROOT, args.model)
-    out = evaluate(model_dir, scene_dir, verbose=not args.json)
+    out = evaluate(model_dir, scene_dir, verbose=not args.json,
+                   convention=args.gt_convention)
     if args.json:
         print(json.dumps(out, ensure_ascii=False, indent=2))
 

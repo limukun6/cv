@@ -141,17 +141,39 @@ def clean_poses(ws, tag):
 
 # ---------------------------------------------------------------- stages
 
-def bundled_model(scene):
-    """数据集自带 COLMAP 模型吗？（Tanks&Temples / Deep Blending / Mip-NeRF 360 都自带）
+def scene_meta(scene, key, default=None):
+    """从 data/<scene>/meta.yaml 读一个键。
 
-    自带的就不用再跑一遍 SfM：直接把场景目录本身当 'colmap' 初始化。
-    这样额外数据集实验能省掉一次 COLMAP（1920×1080 上要十几分钟）。
+    目前用到三个：
+      resolution      降采样倍数（大图场景要设）
+      matcher         sequential / exhaustive（大图 + 多帧时 sequential 快一个数量级）
+      bundled_poses   是否直接用数据集自带的位姿
     """
     meta = os.path.join(ROOT, "data", scene, "meta.yaml")
     if os.path.isfile(meta):
         for line in open(meta, encoding="utf-8-sig"):
-            if line.strip().startswith("source:") and "benchmark" in line:
-                return True
+            if line.strip().startswith(f"{key}:"):
+                return line.split(":", 1)[1].strip()
+    return default
+
+
+def bundled_model(scene):
+    """数据集自带 COLMAP 模型吗？
+
+    由 meta.yaml 里的 `bundled_poses: true` 显式控制，**默认 false**。
+
+    ★ 为什么不干脆用自带的：标准 3DGS 数据集（Mip-NeRF 360 / T&T）都附带
+      COLMAP 位姿，但那是**用全部帧**跑出来的。如果直接拿来当 "colmap 初始化"：
+        · 拿不到 SfM 的初始化耗时（Part 1 要对比四个维度之一就是它）
+        · 协议和必做场景不一致（我们是只用 89 帧估位姿）
+      所以默认自己在同样的帧子集上跑一遍 COLMAP；
+      只有在明确想省时间、且不需要耗时时才置为 true。
+    """
+    meta = os.path.join(ROOT, "data", scene, "meta.yaml")
+    if os.path.isfile(meta):
+        for line in open(meta, encoding="utf-8-sig"):
+            if line.strip().startswith("bundled_poses:"):
+                return line.split(":", 1)[1].strip().lower() in ("true", "1", "yes")
     return False
 
 
@@ -173,6 +195,15 @@ def ensure_poses(scene, n, src_kind, pose_list, force=False):
             return ws, t
         cmd = [PY, "-u", COLMAP_RUN, "--data", "data", "--scene", scene,
                "--out-name", out_name, "--image-list", pose_list, "--force"]
+        # 按场景决定匹配器：大图（1558×1038）上 exhaustive 会慢一个数量级，
+        # 而 Mip-NeRF 360 这类数据本身就是密集视频序列，sequential 足够。
+        m = scene_meta(scene, "matcher")
+        if m:
+            cmd += ["--matcher", m]
+            ov = scene_meta(scene, "overlap")
+            if ov:
+                cmd += ["--overlap", str(ov)]
+            print(f"  [colmap] matcher={m} overlap={ov or '默认'}")
         rc, dt = sh(cmd, os.path.join(ws, "run.log"))
         print(f"  [colmap] rc={rc} {dt/60:.1f} min")
         if rc != 0:

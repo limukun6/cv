@@ -44,32 +44,48 @@ sys.path.insert(0, GS)
 
 
 def load_run(model_path):
-    """按 3DGS 的约定从模型的 cfg_args 里恢复训练参数。"""
+    """读 3DGS 训练时保存的 cfg_args。
+
+    文件内容是 `Namespace(source_path=..., sh_degree=..., ...)` 这样一行文本，
+    所以 eval 时必须把 `Namespace` 喂进 globals，否则报
+    `NameError: name 'Namespace' is not defined`（已踩过）。
+    """
+    from argparse import Namespace
     cfg = os.path.join(model_path, "cfg_args")
     with open(cfg, "r") as f:
-        params = eval(f.read())
-    return params
+        return eval(f.read(), {"Namespace": Namespace})
 
 
 def build_scene_and_gaussians(model_path, args):
-    """复刻 render.py 的初始化流程，保证和训练时一致。"""
+    """复刻 render.py 的初始化流程，保证和训练时一致。
+
+    ★ 不用 3DGS 的 `get_combined_args()`：它内部读 `sys.argv`，而本脚本有
+      自己的命令行参数（--model/--frames/...），会被它当成未知参数报错。
+      直接从 cfg_args 构造 Namespace 更干净。
+    """
     import torch
-    from argparse import ArgumentParser, Namespace
-    from arguments import ModelParams, PipelineParams, get_combined_args
+    from argparse import ArgumentParser
+    from arguments import ModelParams, PipelineParams
     from scene import Scene
     from gaussian_renderer import GaussianModel
 
-    parser = ArgumentParser(description="video")
-    mp = ModelParams(parser, sentinel=True)
-    pp = PipelineParams(parser)
-    parser.add_argument("--iteration", default=-1, type=int)
-    parser.add_argument("--quiet", action="store_true")
-    # 从 cfg_args 里恢复 dataset / pipeline 参数（只覆盖已经存在的键）
-    cfg = load_run(model_path)
-    pargs = get_combined_args(parser, cfg, model_path)
+    ns = load_run(model_path)
+    mp_parser, pp_parser = ArgumentParser(), ArgumentParser()
+    mp = ModelParams(mp_parser)
+    pp = PipelineParams(pp_parser)
+    dataset = mp.extract(ns)
+    pipeline = pp.extract(ns)
 
-    dataset = mp.extract(pargs)
-    pipeline = pp.extract(pargs)
+    # ★ `extract()` 只拷贝 **cfg_args 里存在的键**。老模型（或不同版本的
+    #   train.py 保存的 cfg_args）可能缺少 `debug` / `antialiasing` 这类新参数，
+    #   于是 GroupParams 上没有这些属性，render() 里 `pipe.debug` 就会报
+    #   AttributeError: 'GroupParams' object has no attribute 'debug'（已踩过）。
+    #   这里用各自类的默认值补齐。
+    for obj, tmpl in ((pipeline, pp), (dataset, mp)):
+        for k, v in vars(tmpl).items():
+            if not hasattr(obj, k):
+                setattr(obj, k, v)
+                print(f"  [补齐] {k} = {v}")
 
     gaussians = GaussianModel(dataset.sh_degree)
     scene = Scene(dataset, gaussians, load_iteration=args.iteration, shuffle=False)

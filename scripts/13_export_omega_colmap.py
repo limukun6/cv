@@ -139,38 +139,29 @@ def run_omega(model, images, resolution, device, dtype):
     imgs = preds["images"] if "images" in preds else x
     if pose_enc.dim() == 2:
         pose_enc = pose_enc[None]
-        squeeze = True
-    else:
-        squeeze = False
 
     extr, intr = encoding_to_camera(pose_enc, imgs.shape[-2:])
 
-    def sq(t):
+    def drop_batch(t):
+        """去掉前导的单例维度。
+
+        实测 Ω 的输出是 (1,89,9) / (1,89,3,4) / (1,89,512,512,1) 这种带 batch 的，
+        而 v1 的下游工具（unproject / pycolmap）要的是去掉 batch 的 (S,...)。
+        """
         if not hasattr(t, "dim"):
             return t
-        if t.dim() >= 3 and t.shape[0] == 1 and squeeze:
-            return t[0]
+        while t.dim() > 2 and t.shape[0] == 1:
+            t = t[0]
         return t
 
-    extr, intr = sq(extr), sq(intr)
-    depth = sq(preds["depth"])
-    depth_conf = sq(preds["depth_conf"])
+    extr, intr = drop_batch(extr), drop_batch(intr)
+    depth = drop_batch(preds["depth"])
+    depth_conf = drop_batch(preds["depth_conf"])
 
     to_np = lambda t: t.detach().cpu().numpy() if hasattr(t, "detach") else np.asarray(t)
     return to_np(extr), to_np(intr), to_np(depth), to_np(depth_conf)
 
 
-def normalize_intrinsics(intr):
-    """把内参统一成**归一化**形式（fx∈[0,1]），并返回判定的原始约定。
-
-    判别依据：归一化的 fx 通常在 0.3~3 之间；像素的 fx 与图像宽度同量级。
-    用一个与图像尺寸无关的阈值（fx > 4 视为像素坐标）。
-    """
-    fx = float(intr[0, 0])
-    if fx > 4.0:
-        # 像素坐标：需要知道宽度才能归一化，调用方会再乘回去，这里先按图像宽度归一
-        return intr, "pixel"
-    return intr, "normalized"
 
 
 # ---------------------------------------------------------------- 主流程
@@ -187,6 +178,8 @@ def main():
     ap.add_argument("--max-points", type=int, default=150000, help="写进 COLMAP 的点数上限")
     ap.add_argument("--dtype", default="bf16", choices=["bf16", "fp16", "fp32"])
     ap.add_argument("--dry-run", action="store_true", help="只打印诊断信息，不写文件")
+    ap.add_argument("--expect-fx-norm", type=float, default=None,
+                    help="数据集真值的归一化 fx（如 dl3dv 0.797），用来核对内参是否离谱")
     args = ap.parse_args()
 
     import torch
@@ -195,6 +188,7 @@ def main():
     from vggt.utils.helper import create_pixel_coordinate_grid, randomly_limit_trues
     from vggt.dependency.np_to_pycolmap import batch_np_matrix_to_pycolmap_wo_track
 
+    expect_fx_norm = args.expect_fx_norm
     device = "cuda"
     dtype = {"bf16": torch.bfloat16, "fp16": torch.float16, "fp32": torch.float32}[args.dtype]
 
@@ -217,15 +211,32 @@ def main():
     print(f"extrinsic {extr.shape}  intrinsic {intr.shape}  "
           f"depth {depth.shape}  conf {conf.shape}")
 
-    intr_n, conv = normalize_intrinsics(intr[0])
-    print(f"\n内参约定判定: {conv}")
-    print(f"  第 0 帧 K = \n{np.round(intr[0], 4)}")
-    if conv == "pixel":
-        # 像素坐标 → 归一化（除以模型输入边长）
-        intr = intr / float(args.resolution)
-        print(f"  已按模型输入边长 {args.resolution} 归一化")
+    # ---- 内参单位：必须是**像素**
+    # ★ 这里踩过一个致命的坑：我原先以为 VGGT 的内参是归一化的，把 Ω 的
+    #   fx=407（512 输入下的像素值）除以 512 变成 0.795，于是导出模型的
+    #   fx 变成 0.4，3DGS 渲染相当于从 500 倍远处看场景 → PSNR 只有 9.1 dB。
+    #
+    #   事实是：VGGT v1 的 `pose_encoding_to_extri_intri(pose_enc, image_size)`
+    #   返回的就是**像素**内参（v1 在 BA 分支里做 `intrinsic[:, :2, :] *= scale`
+    #   把 518 空间放大到 1024 空间，也只有像素单位才需要这么放缩）。
+    #   "归一化"是**数据集 cameras.json** 的约定，两者被我混了。
+    #
+    #   所以：像素 → 直接用；归一化 → 乘回去。
+    fx0 = float(intr[0, 0, 0])
+    if fx0 < 4.0:
+        print(f"  ⚠ 内参看起来是归一化的（fx={fx0:.4f}），按 {args.resolution} 还原成像素")
+        intr = intr * float(args.resolution)
+    else:
+        print(f"  内参已是像素单位（fx={fx0:.2f} @ {args.resolution} 输入）")
+    exp_fx = None
+    if expect_fx_norm:
+        exp_fx = expect_fx_norm * args.resolution
+        print(f"  参考：若真值归一化 fx={expect_fx_norm:.4f}，"
+              f"对应 {args.resolution} 输入下应为 {exp_fx:.1f}")
+        print(f"  实际 {float(intr[0,0,0]):.1f}，偏差 {abs(float(intr[0,0,0])-exp_fx)/exp_fx*100:.2f}%")
+    print(f"  第 0 帧 K =\n{np.round(intr[0], 2)}")
 
-    # 深度反投影成三维点（v1 的 intrinsic 就是归一化的，所以必须先归一化）
+    # 深度反投影成三维点（和 v1 一致：传像素内参）
     points_3d = unproject_depth_map_to_point_map(depth, extr, intr)
     print(f"points_3d {points_3d.shape}")
 
