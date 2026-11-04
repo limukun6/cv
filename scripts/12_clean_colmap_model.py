@@ -54,8 +54,15 @@ def main():
     centers = []
     for i in ids:
         img = rec.images[i]
-        # cam_from_world 是 world→camera；取逆得到相机中心
-        c = img.cam_from_world.inverse().translation
+        # cam_from_world 是 world→camera；取逆得到相机中心。
+        # ⚠️ 不同 pycolmap 版本里它可能是**属性**也可能是**方法**：
+        #    属性: img.cam_from_world      （4.2 上是这个）
+        #    方法: img.cam_from_world()    （其它版本）
+        # 不做兼容会报 'builtin_function_or_method' object has no attribute 'inverse'
+        cfw = img.cam_from_world
+        if callable(cfw):
+            cfw = cfw()
+        c = cfw.inverse().translation
         centers.append(np.array([c[0], c[1], c[2]]))
     centers = np.array(centers)
 

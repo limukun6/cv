@@ -1,0 +1,277 @@
+Project 4: Generative Sparse-View 3D
+Reconstruction
+AIAA 3201—Introduction to Computer Vision
+Term Project Instruction
+Fall 2026
+1 Overview
+Core T ask:The goal of this project is to experience the evolution of 3D reconstruction from
+“ideal” to “extreme” conditions, and to understand how modern AI priors are changing the
+reconstruction pipeline.
+1. Start withideal conditions(dense data) to compare classical multi-view geometry with
+modern 3D Foundation Models, and study how data-driven scaling affects reconstruction.
+2. Challengeextreme conditions(unknown poses, sparse views) using unposed reconstruc-
+tion or monocular 3DGS-SLAM without ground truth poses.
+3. ExploreGenerative AIto restore or generate missing visual information, thereby im-
+proving sparse-view reconstruction.
+Key Concepts:
+•3D Reconstruction:3D Gaussian Splatting (3DGS).
+•3D F oundation Models:Classical SfM (COLMAP) vs. feed-forward geometry models
+(VGGT/VGGT-Ω).
+•Unposed Reconstruction:Pose estimation, global consistency, optimization, and monoc-
+ular 3DGS-SLAM.
+•Generative AI:Image and video diffusion priors for sparse-view reconstruction.
+Group Size:2 students per group.
+1
+2 Submission Requirements
+•PDF Report:
+– F ormat:Use the official CVPR LaTeX Template. The length must be6–8 pages
+(excluding references).
+– ArXiv Upload (Optional):You may upload your final report toarXivif desired.
+– Content Requirements:
+1.Abstract & Introduction:Background, motivation and solution overview.
+Explicitly include your GitHub repository link at the end of abstract.
+2.Related W ork:Review and cite the core papers listed in the Recommended
+Reading List (Section 4).
+3.Method:Explain the technical roadmapsin your own words.
+4.Experiments:Present quantitative results (Tables) and qualitative analysis
+(Figures).
+5.Conclusion:Summary, limitations, and future work.
+•Code (Mandatory):Upload your code to a publicGitHub repositorywith a clear
+README.mdexplaining how to run it. Do not submit raw code files. Include dependencies,
+usage, weights, and visual results in your README.
+•Demo Video (Bonus):Pack your rendered video results into a.zipfile and upload
+it to Canvas. Pack them into a zip file namedvideos.zipand upload it to Canvas.
+High-quality visualizations will receivebonus points.
+Important Tips for Success
+•Method Flexibility:You are encouraged to follow our suggested roadmap, but you are
+also free to design your own optimal method. Strict adherence to the “Implementation
+Roadmap” is not mandatory as long as the core tasks are fulfilled.
+•Completeness:All three parts aremandatory. If you fail to complete Part 3, you
+must discuss the reasons and demonstrate failure cases to receive decent score. Ignoring
+it completely will result in an “Incomplete” grade.
+•Visuals:Clean and aesthetic visualizations (e.g., flowcharts, rendering comparisons) are
+crucial for a Computer Vision course and will significantly improve your score.
+•Dataset Scope:Completing only the mandatory datasets ensures a passing grade. To
+achieve a high score, you are expected to report experimental results on additional data.
+•Citations:Ensure all related works and methods are correctly cited.
+3 Guide to Start
+To help you get started efficiently, we recommend the following workflow:
+1.Step 1: Literature Review.Carefully read the papers listed in theRecommended
+Reading List(Section 4). Understanding the core concepts of 3DGS, Sparse Reconstruc-
+tion, and Generative Reconstruction is crucial before coding.
+2
+2.Step 2: Code F amiliarization.Clone the official repositories of the baseline methods
+(e.g., 3DGS). Run their provided demos to ensure your environment is set up and you
+understand the input/output formats.
+3.Step 3: Experimentation.Run the methods on theMandatory Datasets(see Sec-
+tion 6). Adjust code as required by the roadmap. Save your visualization results.
+4.Step 4: W riting & Submission.Organize your results into tables and figures. Write
+your report using the CVPR template, citingALLthe references. Finally, submit the
+PDF report to Canvas.
+4 Recommended Reading List
+•3DGS Reconstruction:3DGS [9], Scaffold-GS [14], Wavelet-GS [25]
+•3D F oundation Models:VGGT [17], VGGT-Ω [18], DA3 [11], LingBot-Map [4], Hori-
+zonStream [5].
+•Unposed Sparse Reconstruction:i3dgs [15], HI-SLAM2 [23], S3PO-GS [6].
+•Generative Reconstruction:BRPO [24], Difix3D+ [20], GeoQuery [3], GenFusion [21],
+GSFixer [22].
+5 Implementation Roadmap
+5.1 Part 1: High-Fidelity Reconstruction (Initialization Analysis)
+Motivation & Goal:Modern 3D Foundation Models are changing the traditional reconstruc-
+tion pipeline from geometry-driven optimization toward data-driven feed-forward prediction.
+Compare classical SfM, a modern foundation model, and its further scaled version to under-
+stand this paradigm shift and the impact of model/data scaling.
+Scenario:Given a video of an object or scene captured with dense views (sufficient data).
+T echnical Pipeline:
+1.Pose & Geometry Initialization:
+•Plan A (Traditional):RunCOLMAP[1] to estimate camera poses and a sparse
+point cloud.
+•Plan B (Foundation Model):UseVGGT[17] to predict camera poses and scene
+geometry.
+•Plan C (Scaled Foundation Model):UseVGGT-Ω [18] to predict camera poses and
+scene geometry.
+2.3DGS Optimization:
+•Convert the estimated cameras/geometry to the required format and train the scene
+using the standard3DGS[9] pipeline.
+•Key Analysis:Compare initialization runtime, pose accuracy, 3DGS convergence
+speed, and final rendering quality across COLMAP, VGGT, and VGGT-Ω.
+•Advanced Exploration (Optional):Interested students may explore other recent 3D
+Foundation Models such as:DA3[11],Pi3-X[19], or streaming feed-forward models
+such asLingBot-Map[4] andHorizonStream[5].
+3
+Output:Compare three plans in runtime, pose accuracy, convergence, and novel-view rendering
+quality. Discuss how data-driven 3D reconstruction differs from classical multi-view geometry
+and what further scaling brings.
+5.2 Part 2: Unposed Sparse Reconstruction
+Motivation & Goal:Dense observations make reconstruction relatively well-constrained. This
+part studies the more challenging setting where only sparse views are available and camera poses
+are unknown.
+Requirement:ChooseONEof the following options (Option A or Option B).
+Scenario:Sub-sample the data from Part 1 to create extremely sparse frames (see Section 6),
+withNOcamera poses provided.
+Option A: Unposed Sparse Reconstruction (Recommended: i3dgs [15])
+•F ull-View Reconstruction:First run i3dgs on the complete input sequence to obtain
+a well-observed reconstruction.
+•Sparse-View Reconstruction:Run the same pipeline again using the sparse sequence
+defined in Section 6, without providing camera poses.
+•Key Analysis:Compare full-view and sparse-view reconstruction in pose accuracy, ren-
+dering quality, geometry completeness, runtime, and failure cases.
+•Challenge:Maintaining reliable pose estimation and global consistency as view overlap
+becomes increasingly sparse.
+Option B: Monocular 3DGS-SLAM (Recommended: HI-SLAM2 [23] or S3PO-GS
+[6])
+•System Loop:Use a monocular 3DGS-SLAM system to jointly estimate camera motion
+and incrementally reconstruct a Gaussian map.
+•Key Components:Focus on the interaction betweenT racking(camera pose estima-
+tion) andMapping(Gaussian scene update), together with global consistency and scale
+control.
+•Tip:HI-SLAM2 requires sufficiently overlapping frames for initialization. For extremely
+sparse settings, you may use a short dense sequence at the beginning for initialization and
+apply sparse sampling to the remaining frames.
+•Challenge:Preventing tracking failure, scale drift, and map degradation under sparse or
+long-sequence inputs.
+Output:A 3DGS model reconstructed without COLMAP-provided camera poses, together
+with evaluation of pose estimation and rendering quality. For both options, explicitly compare
+the full-view and sparse-view settings.
+5.3 Part 3: Closed-Loop Generative Reconstruction (Research)
+Motivation & Goal:Sparse observations may not provide enough information for complete
+reconstruction. This part explores how generative priors can provide missing visual evidence
+and iteratively improve the reconstructed scene.
+Scenario:Build upon the reconstruction framework used in Part 2, or another suitable recon-
+struction pipeline of your choice.
+4
+T echnical Pipeline:
+1.View Selection:Select target views where additional observations are needed. A simple
+default is to interpolate a viewpoint between two sparse input views.
+2.Generative Enhancement:ChooseONEof the following routes:
+•Route A – Image Diffusion Restoration:Render the selected novel view and restore
+it usingGeoQuery[3]. You may follow the reconstruction–generation pipeline of
+BRPO[24].
+•Route B – Video Diffusion Prior:UseGSFixer[22] or other models to restore or
+generate additional views along a selected trajectory. You may follow the reconstruction–
+generation loop ofGenF usion[21].
+•Implement another reasonable generative reconstruction strategy based on related
+work or your own design.
+3.Closed-Loop Reconstruction:Add the generated/restored views back into the recon-
+struction pipeline, update the scene, and repeat the view-selection and generation process.
+Complete at leasttwo generation–reconstruction rounds.
+4.Consistency-Aware Generative F usion (Advanced):Generated views may be vi-
+sually plausible but geometrically inconsistent. Design a strategy to detect, down-weight,
+reject, or correct inconsistent content, e.g., through confidence weighting, geometric align-
+ment, or non-rigid deformation. Refer toBRPO[24] andVideo to world[8].
+5.Efficient Video Diffusion (Advanced for Route B):Reduce video-generation latency
+using training-free acceleration methods such asT eaCache[13] orSenCache[7].
+6.Active / Agentic View Planning (Advanced):Replace fixed view interpolation with
+an active or agent-based strategy that selects where to generate next based on the current
+reconstruction.
+Output:Compare the initial sparse reconstruction with the results after each generation–
+reconstruction round. Visualize the selected views, generated/restored observations, and the
+corresponding reconstruction improvements, and analyze success and failure cases.
+6 Dataset & Evaluation
+6.1 Datasets
+•Mandatory Data:You can download from Baidu or Google.
+–Waymo-405841(Outdoor) – P2 Sparsity: 1/10 frames (follow BRPO)
+–Dl3dv-2(Outdoor) – P2 Sparsity: 1/30 frames (follow BRPO)
+–Re10k-1(Indoor) – P2 Sparsity: 1/30 frames
+•Optional Data:Full Waymo [16]/Dl3dv [12] datasets mentioned in the S3PO-GS code-
+base, or Mip-NeRF 360 [2] / Tankand-Temple [10] datasets used in classic 3DGS.
+6.2 Metrics
+•Rendering Quality:PSNR, SSIM, LPIPS (calculated on the Test Set).
+•Pose Error (for Part 2):ATE (Absolute Trajectory Error) RMSE — Compare the
+estimated poses estimated against the Ground Truth poses.
+5
+•Runtime:Compare the time required for pose/geometry initialization and the overall
+reconstruction process.
+6.3 Qualitative Results
+You must visualize and compare:
+1.Part 1:Reconstruction quality and convergence among [COLMAP + 3DGS], [VGGT +
+3DGS], and [VGGT-Ω + 3DGS].
+2.Part 2:Reconstruction results from the Unposed Sparse Reconstruction Pipeline (Option
+A) or Monocular 3DGS-SLAM (Option B), including a Full Views vs. Sparse Views
+comparison.
+3.Part 3:Reconstruction effects [With vs. Without] Generative View Completion.
+References
+[1] Sameer Agarwal, Yasutaka Furukawa, Noah Snavely, Ian Simon, Brian Curless, Steven M
+Seitz, and Richard Szeliski. Building rome in a day.Communications of the ACM,
+54(10):105–112, 2011.
+[2] Jonathan T Barron, Ben Mildenhall, Dor Verbin, Pratul P Srinivasan, and Peter Hed-
+man. Mip-nerf 360: Unbounded anti-aliased neural radiance fields. InProceedings of the
+IEEE/CVF conference on computer vision and pattern recognition, pages 5470–5479, 2022.
+[3] Xiao Cao, Yuze Li, Youmin Zhang, Jiayu Song, Cheng Yan, Wen Li, and Lixin Duan.
+Geoquery: Geometry-query diffusion for sparse-view reconstruction. InProceedings of
+the Special Interest Group on Computer Graphics and Interactive Techniques Conference
+Conference Papers, pages 1–11, 2026.
+[4] Lin-Zhuo Chen, Jian Gao, Yihang Chen, Ka Leong Cheng, Yipengjing Sun, Liangxiao
+Hu, Nan Xue, Xing Zhu, Yujun Shen, Yao Yao, et al. Geometric context transformer for
+streaming 3d reconstruction.arXiv preprint arXiv:2604.14141, 2026.
+[5] Chong Cheng, Peilin Tao, Nanjie Yao, Guanzhi Ding, Xianda Chen, Yuansen Du, Xiaoyang
+Guo, Wei Yin, Weiqiang Ren, Qian Zhang, et al. Horizonstream: Long-horizon attention
+for streaming 3d reconstruction.arXiv preprint arXiv:2605.23889, 2026.
+[6] Chong Cheng, Sicheng Yu, Zijian Wang, Yifan Zhou, and Hao Wang. Outdoor monocular
+slam with global scale-consistent 3d gaussian pointmaps. InProceedings of the IEEE/CVF
+International Conference on Computer Vision, pages 26035–26044, 2025.
+[7] Yasaman Haghighi and Alexandre Alahi. Sencache: Accelerating diffusion model inference
+via sensitivity-aware caching.arXiv preprint arXiv:2602.24208, 2026.
+[8] Lukas H¨ ollein and Matthias Nießner. World reconstruction from inconsistent views.arXiv
+preprint arXiv:2603.16736, 2026.
+[9] Bernhard Kerbl, Georgios Kopanas, Thomas Leimk¨ uhler, and George Drettakis. 3d gaus-
+sian splatting for real-time radiance field rendering.ACM Trans. Graph., 42(4):139–1,
+2023.
+[10] Arno Knapitsch, Jaesik Park, Qian-Yi Zhou, and Vladlen Koltun. Tanks and temples:
+Benchmarking large-scale scene reconstruction.ACM Transactions on Graphics (ToG),
+36(4):1–13, 2017.
+6
+[11] Haotong Lin, Sili Chen, Junhao Liew, Donny Y Chen, Zhenyu Li, Guang Shi, Jiashi Feng,
+and Bingyi Kang. Depth anything 3: Recovering the visual space from any views.arXiv
+preprint arXiv:2511.10647, 2025.
+[12] Lu Ling, Yichen Sheng, Zhi Tu, Wentian Zhao, Cheng Xin, Kun Wan, Lantao Yu, Qianyu
+Guo, Zixun Yu, Yawen Lu, et al. Dl3dv-10k: A large-scale scene dataset for deep learning-
+based 3d vision. InProceedings of the IEEE/CVF Conference on Computer Vision and
+Pattern Recognition, pages 22160–22169, 2024.
+[13] Feng Liu, Shiwei Zhang, Xiaofeng Wang, Yujie Wei, Haonan Qiu, Yuzhong Zhao, Yingya
+Zhang, Qixiang Ye, and Fang Wan. Timestep embedding tells: It’s time to cache for
+video diffusion model. In2025 IEEE/CVF Conference on Computer Vision and Pattern
+Recognition (CVPR), pages 7353–7363. IEEE, 2025.
+[14] Tao Lu, Mulin Yu, Linning Xu, Yuanbo Xiangli, Limin Wang, Dahua Lin, and Bo Dai.
+Scaffold-gs: Structured 3d gaussians for view-adaptive rendering. InProceedings of the
+IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 20654–20664,
+2024.
+[15] Andreas Meuleman, Linus Franke, Boris Zhestiankin, Camille Montemagni, and George
+Drettakis. Immediate 3d gaussian splat reconstruction of unordered input with global
+consistency.arXiv preprint arXiv:2607.14481, 2026.
+[16] Pei Sun, Henrik Kretzschmar, Xerxes Dotiwalla, Aurelien Chouard, Vijaysai Patnaik, Paul
+Tsui, James Guo, Yin Zhou, Yuning Chai, Benjamin Caine, et al. Scalability in perception
+for autonomous driving: Waymo open dataset. InProceedings of the IEEE/CVF conference
+on computer vision and pattern recognition, pages 2446–2454, 2020.
+[17] Jianyuan Wang, Minghao Chen, Nikita Karaev, Andrea Vedaldi, Christian Rupprecht,
+and David Novotny. Vggt: Visual geometry grounded transformer. InProceedings of the
+Computer Vision and Pattern Recognition Conference, pages 5294–5306, 2025.
+[18] Jianyuan Wang, Minghao Chen, Shangzhan Zhang, Nikita Karaev, Johannes Sch¨ onberger,
+Patrick Labatut, Piotr Bojanowski, David Novotny, Andrea Vedaldi, and Christian Rup-
+precht. Vggt-
+\
+omega. arXivpreprintarXiv: 2605.15195,2026.
+[19] Yifan Wang, Jianjun Zhou, Haoyi Zhu, Wenzheng Chang, Yang Zhou, Zizun Li, Junyi Chen,
+Jiangmiao Pang, Chunhua Shen, and Tong He. Pi3: Permutation-equivariant visual geometry
+learning.arXiv preprint arXiv:2507.13347, 2025.
+[20] Jay Zhangjie Wu, Yuxuan Zhang, Haithem Turki, Xuanchi Ren, Jun Gao, Mike Zheng Shou,
+Sanja Fidler, Zan Gojcic, and Huan Ling. Difix3d+: Improving 3d reconstructions with single-
+step diffusion models. InProceedings of the Computer Vision and Pattern Recognition Confer-
+ence, pages 26024–26035, 2025.
+[21] Sibo Wu, Congrong Xu, Binbin Huang, Andreas Geiger, and Anpei Chen. Genfusion: Closing
+the loop between reconstruction and generation via videos. In2025 IEEE/CVF Conference on
+Computer Vision and Pattern Recognition (CVPR), pages 6078–6088. IEEE, 2025.
+[22] Xingyilang Yin, Qi Zhang, Jiahao Chang, Ying Feng, Qingnan Fan, Xi Yang, Chi-Man Pun,
+Huaqi Zhang, and Xiaodong Cun. Gsfixer: Improving 3d gaussian splatting with reference-
+guided video diffusion priors.arXiv preprint arXiv:2508.09667, 2025.
+7
+[23] Wei Zhang, Qing Cheng, David Skuddis, Niclas Zeller, Daniel Cremers, and Norbert Haala.
+Hi-slam2: Geometry-aware gaussian slam for fast monocular scene reconstruction.IEEE Trans-
+actions on Robotics, 41:6478–6493, 2025.
+[24] Beizhen Zhao, Sicheng Yu, Guanzhi Ding, Yu Hu, and Hao Wang. Pseudo-view enhancement
+via confidence fusion for unposed sparse-view reconstruction.arXiv preprint arXiv:2602.21535,
+2026.
+[25] Beizhen Zhao, Yifan Zhou, Sicheng Yu, Zijian Wang, and Hao Wang. Wavelet-gs: 3d gaussian
+splatting with wavelet decomposition. InProceedings of the 33rd ACM International Conference
+on Multimedia, pages 8616–8625, 2025.
+8

@@ -48,3 +48,12 @@ m360-bonsai__vggt__n50__3dgs__20261103-1246,m360-bonsai,P1,vggt,n50,50,37,19.051
 dl3dv-2__vggt_omega__n50__3dgs__20261103-1432,dl3dv-2,P1,vggt_omega,n50,50,39,22.5248,0.7625,0.1963,,,60.0,402.0,2.9,RTX 4090,omega-pipeline,N=50; VGGT-Omega 416-reproduce; 内参修正后重跑（首次 9.11dB 是内参 bug）
 re10k-1__vggt_omega__n50__3dgs__20261103-1441,re10k-1,P1,vggt_omega,n50,50,35,31.3076,0.9675,0.0307,,,71.0,393.9,15.8,RTX 4090,omega-pipeline,N=50; VGGT-Omega 416-reproduce; export+inference time; LPIPS=vgg/0-1
 waymo-405841__vggt_omega__n50__3dgs__20261103-1453,waymo-405841,P1,vggt_omega,n50,50,25,24.4327,0.7796,0.1934,,,0.0,551.4,8.5,RTX 4090,omega-pipeline,N=50; VGGT-Omega 416-reproduce; export+inference time; LPIPS=vgg/0-1
+dl3dv-2__colmap__n160__3dgs__20261104-2038,dl3dv-2,P1,colmap,n160,160,39,32.1009,0.955,0.0547,,,133.0,336.0,1.8,RTX 4080S 32G,dense160,N=160 稠密；COLMAP 199 帧 2.2min；内参/清理已修
+re10k-1__colmap__n160__3dgs__20261104-2057,re10k-1,P1,colmap,n160,160,35,34.3229,0.9812,0.0204,35.0913,,270.7,303.8,6.1,rented,p1-matrix,N=160 train / 35 test; poses from colmap; LPIPS=vgg/0-1
+dl3dv-2__vggt__n160__3dgs__20261104-2106,dl3dv-2,P1,vggt,n160,160,39,29.125,0.9143,0.0915,,,,,,RTX 4080S 32G,dense160,N=160 稠密；VGGT 199 帧推理 2.7min，峰值显存约 25GB
+re10k-1__vggt__n160__3dgs__20261104-2121,re10k-1,P1,vggt,n160,160,35,27.7145,0.9356,0.0465,,,,,,RTX 4080S 32G,dense160,N=160 稠密；VGGT 195 帧推理 3.7min
+waymo-405841__colmap__n160__3dgs__20261104-2135,waymo-405841,P1,colmap,n160,160,25,33.7019,0.9518,0.0808,,,1950.0,702.0,3.0,RTX 4080S 32G,dense160,N=160 稠密；COLMAP 185 帧用了 32.5min（原生 1920x1280）
+waymo-405841__vggt__n160__3dgs__20261104-2150,waymo-405841,P1,vggt,n160,160,25,23.5937,0.7374,0.2788,35.7314,,154.8,580.5,6.0,rented,p1-matrix,N=160 train / 25 test; poses from vggt; LPIPS=vgg/0-1; -r 4
+dl3dv-2__vggt_omega__n160__3dgs__20261104-2202,dl3dv-2,P1,vggt_omega,n160,160,39,28.3791,0.9,0.1165,,,95.2,441.7,6.3,RTX 4090,omega-pipeline,N=160; VGGT-Omega 416-reproduce; export+inference time; LPIPS=vgg/0-1
+re10k-1__vggt_omega__n160__3dgs__20261104-2211,re10k-1,P1,vggt_omega,n160,160,35,32.516,0.9755,0.0259,,,101.6,423.3,6.1,RTX 4090,omega-pipeline,N=160; VGGT-Omega 416-reproduce; export+inference time; LPIPS=vgg/0-1
+waymo-405841__vggt_omega__n160__3dgs__20261104-2220,waymo-405841,P1,vggt_omega,n160,160,25,24.6716,0.8092,0.3552,,,109.0,1958.6,11.5,RTX 4090,omega-pipeline,N=160; VGGT-Omega 416-reproduce; export+inference time; LPIPS=vgg/0-1
