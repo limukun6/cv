@@ -273,11 +273,48 @@ PY
 
 # ---------- 5. VGGT ----------
 echo
-echo "[5/7] 装 VGGT"
+echo "[5/7] 装 VGGT 及其 demo 依赖"
 if [ ! -d third_party/vggt ]; then
     git clone --depth 1 https://github.com/facebookresearch/vggt.git third_party/vggt
 fi
-pip install -q einops safetensors huggingface_hub trimesh pycolmap
+if [ ! -d third_party/vggt_omega ]; then
+    git clone --depth 1 https://github.com/facebookresearch/vggt-omega.git third_party/vggt_omega
+fi
+
+# ⚠️ 这一串是实测踩出来的，少任何一个 `demo_colmap.py` 都会 import 失败：
+#    · pycolmap 必须锁 3.10.0 —— 4.x 改了 Image 的构造函数（少了 `.id`），
+#      v1 的 np_to_pycolmap.py 在第 256 行会 AttributeError
+#    · lightglue 必须 --no-build-isolation（它 setup.py 里要 import torch）
+#    · hydra-core / omegaconf / onnxruntime 是 vggsfm_tracker 的依赖
+pip install -q "pycolmap==3.10.0" einops safetensors huggingface_hub trimesh \
+               hydra-core omegaconf onnxruntime requests
+if ! python -c "import lightglue" 2>/dev/null; then
+    echo "  装 lightglue（需要 GitHub，如有网络问题先开加速）"
+    pip install -q --no-build-isolation "git+https://github.com/jytime/LightGlue.git#egg=lightglue" || \
+        echo "  ⚠ lightglue 安装失败：VGGT 的 demo_colmap.py 会起不来"
+fi
+# 安装 vggt_omega 包本身（--no-deps 避免它把 numpy 拉到 2.x）
+if [ -d third_party/vggt_omega ]; then
+    pip install -q -e third_party/vggt_omega --no-deps --no-build-isolation 2>/dev/null || true
+fi
+
+# ★ LPIPS 评测需要一个 528 MB 的 VGG16 权重。
+#   如果不预下载，`41_eval.py` 会在评测时去 download.pytorch.org 现场拉，
+#   在国内实测只有 150 KB/s → 评测会卡将近一小时（我们踩过）。
+#   这里主动下（开加速后能到 100 MB/s）；失败就提示用户手动处理。
+VGG16="$HOME/.cache/torch/hub/checkpoints/vgg16-397923af.pth"
+if [ ! -f "$VGG16" ] || [ "$(stat -c %s "$VGG16" 2>/dev/null || echo 0)" -lt 500000000 ]; then
+    mkdir -p "$(dirname "$VGG16")"
+    echo "  预下载 LPIPS 用的 VGG16 权重（528 MB）"
+    ( source /etc/network_turbo >/dev/null 2>&1
+      curl -sL --retry 3 -o "$VGG16" \
+        "https://download.pytorch.org/models/vgg16-397923af.pth" ) || \
+      echo "  ⚠ 下载失败：评测前请手动准备 $VGG16"
+    rm -f "$(dirname "$VGG16")"/*.partial 2>/dev/null || true
+fi
+if [ -f "$VGG16" ]; then
+    echo "  VGG16 就绪：$(du -h "$VGG16" | cut -f1)"
+fi
 
 # ---------- 6. colmap ----------
 echo
