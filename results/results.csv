@@ -57,3 +57,13 @@ waymo-405841__vggt__n160__3dgs__20261104-2150,waymo-405841,P1,vggt,n160,160,25,2
 dl3dv-2__vggt_omega__n160__3dgs__20261104-2202,dl3dv-2,P1,vggt_omega,n160,160,39,28.3791,0.9,0.1165,,,95.2,441.7,6.3,RTX 4090,omega-pipeline,N=160; VGGT-Omega 416-reproduce; export+inference time; LPIPS=vgg/0-1
 re10k-1__vggt_omega__n160__3dgs__20261104-2211,re10k-1,P1,vggt_omega,n160,160,35,32.516,0.9755,0.0259,,,101.6,423.3,6.1,RTX 4090,omega-pipeline,N=160; VGGT-Omega 416-reproduce; export+inference time; LPIPS=vgg/0-1
 waymo-405841__vggt_omega__n160__3dgs__20261104-2220,waymo-405841,P1,vggt_omega,n160,160,25,24.6716,0.8092,0.3552,,,109.0,1958.6,11.5,RTX 4090,omega-pipeline,N=160; VGGT-Omega 416-reproduce; export+inference time; LPIPS=vgg/0-1
+dl3dv-2__colmap__n160__seed9__20261104-2256,dl3dv-2,P1,colmap,n160,160,,32.7324,0.9598,0.0493,,,,,,RTX 4080S 32G,dense160,N=160 稠密；seed9（噪声重复）
+dl3dv-2__colmap__n160__seed9__20261104-2308,dl3dv-2,P1,colmap,n160,160,,31.665,0.953,0.0552,,,,,,RTX 4080S 32G,dense160,N=160 稠密；seed9（噪声重复）
+dl3dv-2__vggt__n160__seed9__20261104-2314,dl3dv-2,P1,vggt,n160,160,,29.0287,0.9141,0.092,,,,,,RTX 4080S 32G,dense160,N=160 稠密；seed9（噪声重复）
+dl3dv-2__vggt_omega__n160__seed9__20261104-2321,dl3dv-2,P1,vggt_omega,n160,160,,28.4292,0.9017,0.1167,,,,,,RTX 4080S 32G,dense160,N=160 稠密；seed9（噪声重复）
+re10k-1__colmap__n160__seed9__20261104-2329,re10k-1,P1,colmap,n160,160,,34.2828,0.9808,0.0206,,,,,,RTX 4080S 32G,dense160,N=160 稠密；seed9（噪声重复）
+re10k-1__vggt__n160__seed9__20261104-2334,re10k-1,P1,vggt,n160,160,,27.512,0.934,0.0485,,,,,,RTX 4080S 32G,dense160,N=160 稠密；seed9（噪声重复）
+re10k-1__vggt_omega__n160__seed9__20261104-2343,re10k-1,P1,vggt_omega,n160,160,,32.5644,0.9754,0.0261,,,,,,RTX 4080S 32G,dense160,N=160 稠密；seed9（噪声重复）
+waymo-405841__colmap__n160__seed9__20261104-2350,waymo-405841,P1,colmap,n160,160,,31.7214,0.9226,0.2276,,,,,,RTX 4080S 32G,dense160,N=160 稠密；seed9（噪声重复）
+waymo-405841__vggt__n160__seed9__20261105-0024,waymo-405841,P1,vggt,n160,160,,23.2655,0.7787,0.407,,,,,,RTX 4080S 32G,dense160,N=160 稠密；seed9（噪声重复）
+waymo-405841__vggt_omega__n160__seed9__20261105-0056,waymo-405841,P1,vggt_omega,n160,160,,24.7721,0.8115,0.3537,,,,,,RTX 4080S 32G,dense160,N=160 稠密；seed9（噪声重复）
