@@ -362,21 +362,53 @@ the variance would have made this comparison look like a tie.
 
 To check that the conclusion is not an artefact of the three mandatory scenes, we
 repeat the comparison on **Mip-NeRF 360** — explicitly listed as optional data in
-the brief and the benchmark used by the original 3DGS paper. Three scenes,
-N = 50, `-r 2` (≈780×520). COLMAP is run by us on the same frames rather than using
-the bundled all-frame model, so the protocol matches the mandatory scenes.
+the brief, and the benchmark of the original 3DGS paper. COLMAP is always run by us
+on the same frames rather than reusing the bundled all-frame model, so the protocol
+matches the mandatory scenes.
+
+**Dense setting (N = 160)**, `-r 2` (≈780×520):
 
 | Scene | Images | COLMAP | VGGT-1B | Gap |
 |---|---|---|---|---|
-| counter | 240 | **25.40** | 21.30 | +4.11 |
-| kitchen | 279 | **27.27** | 21.08 | +6.20 |
-| bonsai | 292 | **28.33** | 19.05 | +9.28 |
+| counter | 240 | **29.47** | 23.66 | +5.81 |
+| bonsai | 292 | **31.27** | 17.03 | **+14.24** |
+| flowers | 173 | **21.49** | 15.51 | +5.99 |
 
-The COLMAP advantage is **4.1–9.3 dB**, matching the magnitude observed on the
+**Sparse setting (N = 50)**, for the two scenes where both settings were run:
+
+| Scene | COLMAP N=50 → N=160 | VGGT-1B N=50 → N=160 |
+|---|---|---|
+| counter | 25.40 → **29.47** (+4.07) | 21.30 → 23.66 (+2.36) |
+| bonsai | 28.33 → **31.27** (+2.94) | 19.05 → **17.03 (−2.03)** |
+
+The COLMAP advantage reproduces at **+5.8 to +14.2 dB**, the same order as on the
 mandatory scenes (+2.8 to +9.6 dB). The conclusion transfers.
 
-These three configurations have **n = 1** and therefore no significance test.
-Densifying this dataset was **[not done]**.
+**One additional observation supports §4.2.** On `bonsai`, VGGT-1B gets *worse* with
+more views (19.05 → 17.03 dB) while COLMAP improves. This is the same asymmetry the
+mandatory scenes show, in a stronger form: per-frame unprojected points accumulate
+mutual inconsistency as the frame count grows, whereas triangulated points only get
+better constrained.
+
+**Two failure modes had to be fixed to obtain the `flowers` row**, and both are worth
+recording because they are silent:
+
+1. **Sequential matching fragmented the scene.** With `overlap=10` the mapper broke
+   the 173-frame sequence into **five disconnected sub-models** (34 / 21 / 44 / 35 /
+   12 images), and the pipeline silently trained on the largest-recovered one,
+   producing 19.23 dB. Switching to **exhaustive matching** (14 878 pairs, after
+   reducing SIFT to 2 048 features to keep it tractable) registered **173/173**
+   images and raised the score to **21.49 dB**.
+2. **VGGT exported zero 3D points** for this scene. `demo_colmap.py` filters depth
+   points at `conf_thres_value = 5.0` by default; on `flowers` this discarded
+   everything, so the exported model had 173 cameras and **0 points**. 3DGS then
+   crashed with `CUDA error: invalid configuration argument`. Lowering the
+   threshold to **2.0** yielded 100 000 points and a valid (if weak) 15.51 dB result.
+
+Neither failure announced itself: one produced a plausible-looking but wrong number,
+the other an opaque CUDA error.
+
+These six configurations have **n = 1** and therefore no significance test.
 
 ---
 

@@ -80,6 +80,9 @@ def main():
     #   这两个参数是官方 demo 暴露的减压旋钮。
     ap.add_argument("--max-query-pts", type=int, default=None,
                     help="每帧查询点数，越小越省显存（官方默认 4096）")
+    ap.add_argument("--conf-thres", type=float, default=None,
+                   help="覆盖 demo_colmap.py 的 conf_thres_value（默认 5.0）。"
+                        "设低可在点云为 0 的场景里把点找回来")
     ap.add_argument("--query-frame-num", type=int, default=None,
                     help="查询帧数，越小越省显存（官方默认 8）")
     args = ap.parse_args()
@@ -146,6 +149,12 @@ def main():
         cmd.append(f"--max_query_pts={args.max_query_pts}")
     if args.query_frame_num:
         cmd.append(f"--query_frame_num={args.query_frame_num}")
+    if args.conf_thres is not None:
+        # ★ demo_colmap.py 默认 conf_thres_value=5.0，会把低置信度的深度点全滤掉。
+        # 在某些场景（如 Mip-NeRF 360 的 flowers）会导致导出 **0 个三维点**，
+        # 3DGS 随后崩在 `CUDA error: invalid configuration argument`。
+        # 调低这个阈值能把点找回来，代价是引入一些噪声点。
+        cmd.append(f"--conf_thres_value={args.conf_thres}")
 
     print("运行:", " ".join(cmd))
     t0 = time.time()
