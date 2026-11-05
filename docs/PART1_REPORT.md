@@ -299,6 +299,12 @@ feature extraction **42.3 s**, sequential matching **284.3 s**, incremental mapp
 
 ### 3.5 3DGS convergence
 
+![Figure 2 — convergence curves](../docs/figures/p1_convergence.png)
+
+*Figure 2. Test-set PSNR against training iteration (N = 50), with peak positions
+annotated. Four of the six curves are still improving at 30 k; two peak early and
+then decay.*
+
 Test-set PSNR sampled at 1k / 5k / 10k / 15k / 20k / 25k / 30k iterations (N = 50):
 
 | Scene | Backend | 1k | 5k | 10k | 30k | Peak position |
