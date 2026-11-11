@@ -395,6 +395,8 @@ reference" is a first-class experimental step, not debugging.
    **Consequence:** the VGGT-1B column should be read as "one draw from a wide
    distribution", not as a tight estimate. The training-seed spread we report (§3.5,
    std 0.07–0.23 dB) is an order of magnitude smaller than this export-level spread.
+   Re-running the whole pipeline on a second machine (§3.6) reproduced 8 of 9
+   configurations to within 0.12 dB; this was the only one that moved.
 2. **Convergence is characterized at N = 50 only.** Curves for the dense condition
    exist in training logs but were not extracted before the machine was released.
 3. **Additional dataset is single-seed.** The six Mip-NeRF 360 configurations have
