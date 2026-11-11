@@ -106,7 +106,13 @@ def main():
     log_base = os.path.join(ROOT, "outputs", "logs")
 
     # ---------- 1. 准备 image 目录（用训练帧 ∪ 测试帧，和其他两种初始化一致）
-    if not os.path.isdir(os.path.join(ws, "images")):
+    # ⚠️ 只判断目录是否存在是不够的：数据包（tar）会带上**空**的
+    #    vggt_omega_n<N>/images/ 目录，于是这里被判定为"已准备好"而跳过拷贝，
+    #    下游 13_export_omega_colmap.py 就报 "没有图片"。必须检查非空。
+    _img_dir = os.path.join(ws, "images")
+    _has_imgs = os.path.isdir(_img_dir) and any(
+        f.lower().endswith((".png", ".jpg", ".jpeg")) for f in os.listdir(_img_dir))
+    if not _has_imgs:
         src = os.path.join(sd, "images") if os.path.isdir(os.path.join(sd, "images")) \
             else os.path.join(sd, "rgb")
         names = sorted(set(read_list(train_list)) | set(read_list(test_list)))

@@ -88,6 +88,13 @@ def per_view_psnr(a, b):
     """单视角 PSNR（渲染 vs 真值），用来标在每个面板角上。"""
     a = a.astype(np.float64) / 255.0
     b = b.astype(np.float64) / 255.0
+    if a.shape != b.shape:
+        # 与 41_eval.py 保持一致：把真值缩放到渲染尺寸再比。
+        # waymo 的测试图是原始 1066×1600，而 3DGS 用 -r 4 渲染成 480×320，
+        # 不处理会直接 broadcast 报错（第一次跑就崩在这）。
+        b = np.asarray(
+            Image.fromarray((b * 255).astype(np.uint8)).resize((a.shape[1], a.shape[0])),
+            dtype=np.float64) / 255.0
     mse = float(np.mean((a - b) ** 2))
     if mse <= 1e-12:
         return float("inf")
@@ -148,8 +155,17 @@ def main():
         name = os.path.basename(gt_path)
         gt = np.array(Image.open(gt_path).convert("RGB"))
 
+        # 第一列的渲染图尺寸（waymo 是 480×320），真值图可能是原始分辨率。
+        # 显示时把真值缩到同一尺寸，否则网格里各列大小不一致、看不出对应关系。
+        ref_path = os.path.join(runs[0], "test", "ours_30000", "renders", name)
+        gt_disp = gt
+        if os.path.isfile(ref_path):
+            rw, rh = Image.open(ref_path).size
+            if (rw, rh) != (gt.shape[1], gt.shape[0]):
+                gt_disp = np.array(Image.fromarray(gt).resize((rw, rh)))
+
         ax = axes[row][0]
-        ax.imshow(gt)
+        ax.imshow(gt_disp)
         ax.set_xticks([]); ax.set_yticks([])
         if args.label_mode == "psnr":
             ax.set_xlabel(name, fontsize=8, color="#444")
@@ -178,9 +194,13 @@ def main():
 
     fig.text(0.5, 0.004,
              "Column headers give the scene-level mean test PSNR (mean over all test views, "
-             "2–3 seeds where available); corner labels give that single view's PSNR.",
-             ha="center", fontsize=9, style="italic")
-    fig.tight_layout(rect=[0, 0.02, 1, 0.955])
+             "2–3 seeds where available); corner labels give that single view's PSNR.\n"
+             "Note: the official VGGT exporter caps the point cloud at 100 000 points chosen by a "
+             "random unseeded subsample (vggt/utils/helper.py::randomly_limit_trues), so VGGT-1B "
+             "figures carry an export-level spread far larger than its training-seed spread — "
+             "see the report's limitations.",
+             ha="center", fontsize=8.5, style="italic")
+    fig.tight_layout(rect=[0, 0.035, 1, 0.955])
 
     out = args.out or os.path.join(ROOT, "docs", "figures", f"p1_qual_{args.scene}.png")
     os.makedirs(os.path.dirname(out), exist_ok=True)

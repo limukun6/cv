@@ -31,10 +31,29 @@ mkdir -p "$LOGDIR"
 say() { echo ""; echo "########## $(date '+%H:%M:%S')  $* ##########"; }
 
 # ---------------- 0. 解压数据 ----------------
-if [ ! -d data/dl3dv-2 ]; then
-    say "解压数据包"
+# ⚠️ 不能用 `[ ! -d data/dl3dv-2 ]` 判断：git 仓库里已经带了
+#    data/<scene>/meta.yaml 和 splits/，所以那个目录总是存在——上一轮就是这样
+#    把解压跳过了，结果 COLMAP/VGGT 全部因为找不到图片秒失败（rc=1）。
+#    必须检查**图片目录**。
+need_extract=0
+for sc in $SCENES; do
+    if [ ! -d "data/$sc/rgb" ] && [ ! -d "data/$sc/images" ]; then
+        need_extract=1
+    fi
+done
+if [ "$need_extract" -eq 1 ]; then
+    say "解压数据包（缺图片目录）"
     tar xzf /root/autodl-tmp/p1_bundle.tar.gz || { echo "解压失败"; exit 1; }
 fi
+# 解压后再确认一次，图片数量对不上就直接退出，别浪费几小时
+for sc in $SCENES; do
+    n=0
+    for d in rgb images; do
+        [ -d "data/$sc/$d" ] && n=$((n + $(ls "data/$sc/$d" | wc -l)))
+    done
+    echo "  $sc 图片 $n 张"
+    if [ "$n" -lt 100 ]; then echo "✗ $sc 图片不足（$n 张），中止"; exit 1; fi
+done
 say "数据就绪: $(du -sh data | cut -f1)"
 
 # ---------------- 1+2. COLMAP 与 VGGT ----------------

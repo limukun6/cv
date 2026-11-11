@@ -143,6 +143,22 @@ metric:
 | Re10k-1 | 0.981 / 0.020 | 0.936 / 0.047 | 0.976 / 0.026 |
 | Waymo-405841 | 0.952 / 0.081 | 0.737 / 0.279 | 0.809 / 0.355 |
 
+> **Caveat on the VGGT-1B column.** These numbers come from one export of the VGGT
+> point cloud. The official exporter subsamples the cloud to 100 000 points with an
+> unseeded `np.random.choice`, so re-running the *same* model changes the result: on
+> DL3DV-2 three exports of one model rendered 21.42 / 27.47 / 29.08 dB. The reported
+> 29.08 is the most favourable of the three. §3.5 and §6 quantify the spread; the
+> COLMAP and VGGT-Ω columns reproduced to within 0.6 dB when we re-ran the entire
+> pipeline on a second machine.
+
+![Figure 3 — qualitative comparison on DL3DV-2](figures/p1_qual_dl3dv-2.png)
+
+*Figure 3. The three initializations rendered at identical test views (DL3DV-2, N = 160).
+Corner labels are per-view PSNR; column headers are scene means. VGGT-1B loses the fine
+structure of the red foliage and the paving joints, while VGGT-Ω retains shape but shows
+colour drift — the quantitative ordering is visible by eye. The same figures for
+RealEstate10K-1 and Waymo-405841 are `p1_qual_re10k-1.png` and `p1_qual_waymo-405841.png`.*
+
 ### 3.2 Pose accuracy
 
 ATE is RMS camera-centre error after similarity alignment, as a percentage of the
@@ -225,7 +241,34 @@ Reporting means without variances would have made that comparison look like a ti
 **COLMAP has the highest mean but also the highest variance**, and on Waymo a single
 COLMAP run varies by up to 2 dB.
 
-### 3.6 Additional dataset (bonus requirement)
+### 3.6 Reproduction on a second machine
+
+We re-ran the entire pipeline on a different GPU (RTX 4090 48 GB) from scratch — fresh
+environment, re-downloaded weights, re-estimated poses, re-trained — to check whether
+these numbers are properties of the method or of one machine. **Eight of nine
+configurations reproduced to within 0.12 dB:**
+
+| Scene | Backend | First machine | Second machine | Δ |
+|---|---|---|---|---|
+| DL3DV-2 | COLMAP | 32.10 | 32.71 | +0.61 |
+| DL3DV-2 | VGGT-1B | 29.12 | **21.42** | **−7.70** |
+| DL3DV-2 | VGGT-Ω | 28.38 | 28.27 | −0.11 |
+| Re10k-1 | COLMAP | 34.32 | 34.27 | −0.06 |
+| Re10k-1 | VGGT-1B | 27.71 | 27.62 | −0.10 |
+| Re10k-1 | VGGT-Ω | 32.52 | 32.48 | −0.03 |
+| Waymo-405841 | COLMAP | 33.70 | 33.58 | −0.12 |
+| Waymo-405841 | VGGT-1B | 23.59 | 23.50 | −0.10 |
+| Waymo-405841 | VGGT-Ω | 24.67 | 24.68 | 0.00 |
+
+The single outlier is the VGGT-1B export on DL3DV-2, and we traced it to the exporter
+rather than to training: re-exporting the same model from the same images produced
+point clouds with **identical poses** (mean per-camera difference 0.0000 after scale
+normalisation) but rendered 21.42, 27.47 and 29.08 dB. Removing the 100 000-point cap
+altogether is not a fix either — it admits **17–40 million** points on these scenes,
+which 3DGS cannot train. The correct fix is to replace the random subsample with a
+deterministic, confidence-ranked one, which we did not implement.
+
+### 3.7 Additional dataset (bonus requirement)
 
 Mip-NeRF 360 — explicitly listed as optional data in the brief and the benchmark of
 the original 3DGS paper. COLMAP is always run by us on the same frames rather than
@@ -341,16 +384,27 @@ reference" is a first-class experimental step, not debugging.
 
 ## 6. Limitations
 
-1. **Convergence is characterized at N = 50 only.** Curves for the dense condition
+1. **VGGT-1B's exported point cloud is not reproducible.** The official exporter caps the
+   cloud at 100 000 points via `randomly_limit_trues` in `vggt/utils/helper.py`, which
+   calls `np.random.choice` on the confident-depth mask. Re-exporting the *same* model
+   from the *same* 199 images — with poses we verified to be identical — changes which
+   points are kept, and the rendered result moves by several dB. On DL3DV-2 we measured
+   **21.42 / 27.47 / 29.08 dB from three exports of one model**. Re-exporting Re10k-1 and
+   Waymo-405841, by contrast, reproduced their earlier scores (27.62 vs 27.61,
+   23.50 vs 23.43), so the instability is scene-dependent rather than universal.
+   **Consequence:** the VGGT-1B column should be read as "one draw from a wide
+   distribution", not as a tight estimate. The training-seed spread we report (§3.5,
+   std 0.07–0.23 dB) is an order of magnitude smaller than this export-level spread.
+2. **Convergence is characterized at N = 50 only.** Curves for the dense condition
    exist in training logs but were not extracted before the machine was released.
-2. **Additional dataset is single-seed.** The six Mip-NeRF 360 configurations have
+3. **Additional dataset is single-seed.** The six Mip-NeRF 360 configurations have
    n = 1; the +5.8 to +14.2 dB gaps transfer but carry no significance test.
-3. **"Dense" means a dense-view regime, not every frame.** Re10k-1 matches its
+4. **"Dense" means a dense-view regime, not every frame.** Re10k-1 matches its
    full-sequence baseline to 0.04 dB, but DL3DV-2 and Waymo-405841 remain 1.2 and
    2.6 dB below.
-4. **VGGT-Ω's point-cloud mechanism is a hypothesis** (§4.2).
-5. **No hybrid configuration** (VGGT poses + re-triangulated points) was run.
-6. Single GPU generation; COLMAP timings are CPU-bound and host-dependent.
+5. **VGGT-Ω's point-cloud mechanism is a hypothesis** (§4.2).
+6. **No hybrid configuration** (VGGT poses + re-triangulated points) was run.
+7. Single GPU generation; COLMAP timings are CPU-bound and host-dependent.
 
 ---
 

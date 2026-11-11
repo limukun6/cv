@@ -1,0 +1,10 @@
+run_id,scene,part,source,split,train_frames,test_frames,psnr,ssim,lpips,train_psnr,ate_rmse,t_init_s,t_train_s,t_eval_s,gpu,git_commit,notes
+dl3dv-2__colmap__n160__3dgs__20261111-1342,dl3dv-2,P1,colmap,n160,160,39,32.7086,0.9617,0.0467,34.7155,,72.9,248.8,137.1,rented,p1-matrix,N=160 train / 39 test; poses from colmap; LPIPS=vgg/0-1
+dl3dv-2__vggt__n160__3dgs__20261111-1351,dl3dv-2,P1,vggt,n160,160,39,21.4235,0.7498,0.1972,22.3838,,144.8,319.8,5.3,rented,p1-matrix,N=160 train / 39 test; poses from vggt; LPIPS=vgg/0-1
+re10k-1__colmap__n160__3dgs__20261111-1400,re10k-1,P1,colmap,n160,160,35,34.2666,0.9815,0.0203,34.4884,,179.6,306.4,5.5,rented,p1-matrix,N=160 train / 35 test; poses from colmap; LPIPS=vgg/0-1
+re10k-1__vggt__n160__3dgs__20261111-1408,re10k-1,P1,vggt,n160,160,35,27.6187,0.9345,0.0485,29.1452,,160.6,635.1,5.5,rented,p1-matrix,N=160 train / 35 test; poses from vggt; LPIPS=vgg/0-1
+waymo-405841__colmap__n160__3dgs__20261111-1432,waymo-405841,P1,colmap,n160,160,25,33.5819,0.9518,0.0815,37.3429,,795.6,418.0,5.1,rented,p1-matrix,N=160 train / 25 test; poses from colmap; LPIPS=vgg/0-1; -r 4
+waymo-405841__vggt__n160__3dgs__20261111-1442,waymo-405841,P1,vggt,n160,160,25,23.495,0.7345,0.2811,34.6656,,133.9,411.5,4.6,rented,p1-matrix,N=160 train / 25 test; poses from vggt; LPIPS=vgg/0-1; -r 4
+dl3dv-2__vggt_omega__n160__3dgs__20261111-1504,dl3dv-2,P1,vggt_omega,n160,160,39,28.2707,0.9005,0.1141,,,87.3,338.9,5.9,RTX 4090,omega-pipeline,N=160; VGGT-Omega 416-reproduce; export+inference time; LPIPS=vgg/0-1
+re10k-1__vggt_omega__n160__3dgs__20261111-1512,re10k-1,P1,vggt_omega,n160,160,35,32.4819,0.9751,0.0262,,,80.7,333.5,5.5,RTX 4090,omega-pipeline,N=160; VGGT-Omega 416-reproduce; export+inference time; LPIPS=vgg/0-1
+waymo-405841__vggt_omega__n160__3dgs__20261111-1519,waymo-405841,P1,vggt_omega,n160,160,25,24.6754,0.811,0.3551,,,88.5,1538.8,8.2,RTX 4090,omega-pipeline,N=160; VGGT-Omega 416-reproduce; export+inference time; LPIPS=vgg/0-1

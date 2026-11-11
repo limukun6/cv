@@ -201,7 +201,9 @@ def main():
     #      只有 3783 个点），3DGS 训练 PSNR 直接掉到 17.6 dB。
     #      exhaustive 对 89 张图只有 C(89,2)=3916 对，256² 图上很快，连通性好得多。
     n_match = 0
-    if os.path.isdir(os.path.join(ws, "images")):
+    # 同 14 号脚本：空目录不等于"已准备好"（数据包会带空目录）
+    _d = os.path.join(ws, "images")
+    if os.path.isdir(_d) and any(f.lower().endswith(IMAGE_EXTS) for f in os.listdir(_d)):
         n_match = len([f for f in os.listdir(os.path.join(ws, "images"))
                        if f.lower().endswith(IMAGE_EXTS)])
     use_exhaustive = args.matcher == "exhaustive" or (
