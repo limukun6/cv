@@ -289,9 +289,18 @@ fi
 pip install -q "pycolmap==3.10.0" einops safetensors huggingface_hub trimesh \
                hydra-core omegaconf onnxruntime requests
 if ! python -c "import lightglue" 2>/dev/null; then
-    echo "  装 lightglue（需要 GitHub，如有网络问题先开加速）"
-    pip install -q --no-build-isolation "git+https://github.com/jytime/LightGlue.git#egg=lightglue" || \
+    echo "  装 lightglue（从 GitHub 装，先开学术加速）"
+    # 实测：不开加速时 git clone 直接被墙（exit 128），而这一步失败会让
+    # VGGT 的 demo_colmap.py 在 import 阶段就崩，整条链跑不起来。
+    ( source /etc/network_turbo >/dev/null 2>&1 || true
+      pip install -q --no-build-isolation "git+https://github.com/jytime/LightGlue.git#egg=lightglue" )
+    unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY
+    if ! python -c "import lightglue" 2>/dev/null; then
         echo "  ⚠ lightglue 安装失败：VGGT 的 demo_colmap.py 会起不来"
+        echo "     手动补装："
+        echo "       source /etc/network_turbo"
+        echo "       pip install --no-build-isolation 'git+https://github.com/jytime/LightGlue.git#egg=lightglue'"
+    fi
 fi
 # 安装 vggt_omega 包本身（--no-deps 避免它把 numpy 拉到 2.x）
 if [ -d third_party/vggt_omega ]; then
