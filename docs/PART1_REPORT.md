@@ -200,26 +200,39 @@ kitchen scene the split is feature extraction 42.3 s, matching 284.3 s, mapping 
 
 ### 3.4 Convergence
 
-Test PSNR at 1k / 5k / 10k / 15k / 20k / 25k / 30k iterations (N = 50; see §6):
+![Figure 1 — convergence curves at N = 160](figures/p1_convergence_n160.png)
 
-![Figure 1 — convergence curves](../docs/figures/p1_convergence.png)
+*Figure 1. Test PSNR against training iteration for all nine configurations at the
+dense setting. Hollow circles mark the two configurations that peak before 30 k and
+then decay.*
 
-*Figure 1. Convergence curves with peak positions annotated. Two of six
-configurations peak early and then decline.*
+| Scene | Backend | 1k | 5k | 10k | 15k | 20k | 25k | 30k | Peak |
+|---|---|---|---|---|---|---|---|---|---|
+| DL3DV-2 | COLMAP | 24.38 | 25.87 | 28.06 | 29.40 | 31.75 | 32.34 | **32.73** | 30k |
+| DL3DV-2 | VGGT-1B | 18.03 | 20.61 | 21.22 | 21.29 | 21.37 | 21.37 | 21.43 | 30k |
+| DL3DV-2 | VGGT-Ω | 19.08 | 24.06 | 25.83 | 26.65 | 27.64 | 28.02 | 28.28 | 30k |
+| Re10k-1 | COLMAP | 24.70 | 31.64 | 32.70 | 33.39 | 33.98 | 34.14 | **34.29** | 30k |
+| Re10k-1 | VGGT-1B | 21.32 | 24.68 | 25.77 | 26.57 | 27.23 | 27.51 | 27.63 | 30k |
+| Re10k-1 | VGGT-Ω | 24.30 | 28.64 | 30.01 | 30.90 | 31.89 | 32.24 | 32.50 | 30k |
+| Waymo-405841 | COLMAP | 26.54 | 29.69 | 31.31 | 32.44 | 33.14 | 33.49 | **33.70** | 30k |
+| Waymo-405841 | VGGT-1B | 21.91 | 23.40 | **23.80** | 23.66 | 23.69 | 23.66 | 23.57 | **10k, then decay** |
+| Waymo-405841 | VGGT-Ω | 22.08 | 24.20 | 24.80 | 24.81 | **24.83** | 24.76 | 24.72 | **20k, then decay** |
 
-| Scene | Backend | 1k | 5k | 10k | 30k | Peak |
-|---|---|---|---|---|---|---|
-| DL3DV-2 | COLMAP | **22.63** | 22.14 | 21.86 | 21.68 | **1k, then decay** |
-| DL3DV-2 | VGGT-1B | 17.71 | 19.26 | 19.65 | 19.63 | 20k |
-| Re10k-1 | COLMAP | 24.55 | 31.26 | 32.03 | **32.76** | 30k |
-| Re10k-1 | VGGT-1B | 21.62 | 24.52 | 25.60 | **26.81** | 30k |
-| Waymo-405841 | COLMAP | 25.97 | 29.76 | 31.52 | **32.75** | 30k |
-| Waymo-405841 | VGGT-1B | 21.99 | 23.28 | 23.36 | 22.78 | **10k, then decay** |
+Three observations:
 
-Where a configuration peaks early, the decline coincides with the end of densification
-(15 k) and periodic opacity resets: with few views the optimizer keeps fitting the
-training set while novel views degrade. **The standard 30 k budget is not optimal in
-the limited-view regime.**
+1. **At the dense setting, the standard 30 k budget is sound.** Seven of nine
+   configurations are still improving at 30 k, and all three COLMAP curves are.
+2. **The early-peak pathology is a limited-view phenomenon.** At N = 50, DL3DV-2 with
+   COLMAP peaked at **1 k (22.63 dB)** and decayed to 21.68 — the single most
+   counter-intuitive number in the earlier run. At N = 160 the same configuration rises
+   monotonically to 32.73 dB. Under-training is what hurt, not over-training.
+3. **On Waymo, both feed-forward backends peak early while COLMAP does not** (10 k and
+   20 k respectively, decaying by 0.23 and 0.11 dB). With 160 views COLMAP keeps
+   converting extra iterations into quality, whereas VGGT-1B and VGGT-Ω saturate — the
+   same "the two families scale differently" pattern seen in §3.3 and §4.2, now in the
+   iteration dimension rather than the view dimension.
+
+Per-checkpoint values are in `results/p1_curves_n160.csv`.
 
 ### 3.5 Significance
 
@@ -397,16 +410,14 @@ reference" is a first-class experimental step, not debugging.
    std 0.07–0.23 dB) is an order of magnitude smaller than this export-level spread.
    Re-running the whole pipeline on a second machine (§3.6) reproduced 8 of 9
    configurations to within 0.12 dB; this was the only one that moved.
-2. **Convergence is characterized at N = 50 only.** Curves for the dense condition
-   exist in training logs but were not extracted before the machine was released.
-3. **Additional dataset is single-seed.** The six Mip-NeRF 360 configurations have
+2. **Additional dataset is single-seed.** The six Mip-NeRF 360 configurations have
    n = 1; the +5.8 to +14.2 dB gaps transfer but carry no significance test.
-4. **"Dense" means a dense-view regime, not every frame.** Re10k-1 matches its
+3. **"Dense" means a dense-view regime, not every frame.** Re10k-1 matches its
    full-sequence baseline to 0.04 dB, but DL3DV-2 and Waymo-405841 remain 1.2 and
    2.6 dB below.
-5. **VGGT-Ω's point-cloud mechanism is a hypothesis** (§4.2).
-6. **No hybrid configuration** (VGGT poses + re-triangulated points) was run.
-7. Single GPU generation; COLMAP timings are CPU-bound and host-dependent.
+4. **VGGT-Ω's point-cloud mechanism is a hypothesis** (§4.2).
+5. **No hybrid configuration** (VGGT poses + re-triangulated points) was run.
+6. Single GPU generation; COLMAP timings are CPU-bound and host-dependent.
 
 ---
 
