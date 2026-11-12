@@ -804,18 +804,19 @@ def slide_videos(prs, figs, ctx):
 
 def slide_video_play(prs, figs, ctx):
     s = blank(prs)
-    header(s, "Playback \u2014 Waymo-405841 at 160 views", "appendix \u00b7 demo")
+    header(s, "Animated \u2014 Waymo-405841 at 160 views", "appendix \u00b7 demo")
 
-    video = figs.parent / "videos" / "waymo_dense160.mp4"
-    poster = figs / "ppt_video_poster.png"
-    w = 7.05
+    # Animated GIF rather than an embedded movie: it autoplays and loops in
+    # slideshow with no click and no codec, which is the failure we hit with
+    # add_movie. 480x320 at 8 fps keeps it under 4 MB.
+    gif = figs.parent / "gifs" / "waymo_dense160.gif"
+    w = 6.75
     h = w * 320.0 / 480.0
-    top = 1.62
-    s.shapes.add_movie(str(video), Inches(MX), Inches(top), Inches(w), Inches(h),
-                       poster_frame_image=str(poster), mime_type="video/mp4")
+    top = 1.66
+    s.shapes.add_picture(str(gif), Inches(MX), Inches(top), Inches(w), Inches(h))
 
-    PX, PW = 8.10, 4.60
-    tf = textbox(s, PX, 1.62, PW, 0.3)
+    PX, PW = 7.78, 4.92
+    tf = textbox(s, PX, 1.66, PW, 0.3)
     para(tf, True, "WHAT TO WATCH", size=9.5, color=FAINT, bold=True)
 
     items = [
@@ -823,10 +824,10 @@ def slide_video_play(prs, figs, ctx):
          "that is dense but mutually unconstrained."),
         ("Parked cars on the left", "keep their silhouette but lose their edges; this is the scene "
          "where the gap between backends is largest (+9.3 dB)."),
-        ("This is not a still", "the trajectory is continuous, so temporal consistency is on "
-         "display, not just per-frame fidelity."),
+        ("Not a still", "the trajectory is continuous, so temporal consistency is on display, "
+         "not just per-frame fidelity."),
     ]
-    y = 1.96
+    y = 2.00
     for lead, rest in items:
         tf = textbox(s, PX, y, PW, 1.25)
         p = tf.paragraphs[0]
@@ -836,24 +837,27 @@ def slide_video_play(prs, figs, ctx):
         p2.space_before = Pt(3)
         p2.line_spacing = 1.06
         run(p2, rest, size=10.5, color=MUTED)
-        y += 1.12
+        y += 1.10
 
-    tf = textbox(s, PX, y + 0.10, PW, 0.9)
+    tf = textbox(s, PX, y + 0.14, PW, 1.05)
     p = tf.paragraphs[0]
     p.line_spacing = 1.08
-    run(p, "\u25b6 Click the frame to play. ", size=10.5, color=BLUE, bold=True)
-    run(p, "The other eight clips are separate mp4s in docs/videos/ \u2014 they are not embedded, "
-           "because embedding all nine would add ~70 MB to the deck.", size=10.5, color=MUTED)
+    run(p, "\u25b6 Loops automatically in slide show. ", size=10.5, color=BLUE, bold=True)
+    run(p, "The other eight clips are separate mp4s in docs/videos/; embedding all nine would "
+           "add ~70 MB.", size=10.5, color=MUTED)
 
     footer(s, 13)
     notes(s, """
-这段视频嵌在 PPT 里，点击画面就能直接播放，不需要另外开文件。
+这一页是动图，不是视频——放映时会自己循环播放，不用点，也不需要解码器。
+之前那版嵌的是 mp4，要点击才播，而且换了机器或放映格式就播不了，所以换成了 GIF。
 选 Waymo 是因为这是车载场景，三维感和动态最明显，而且它恰好是三个后端差距最大的场景（+9.3 dB）。
-如果只有 30 秒，就放这一段，边放边说：
+如果只有 30 秒，就停在这一页边放边说：
 "注意看远处路缘和左侧停着的车——几何是稠密的，但每帧之间没有多视图约束，
 所以相机一动，条纹会重新排列。这就是 track length = 1.0 在视觉上的样子。"
-重要提醒：如果这次放映用的是 PDF，视频播不了，只能看缩略图那一页。
-所以正式场合建议用 PPTX 放映，PDF 只当备份。
+两个提醒：
+第一，GIF 只有 8 帧每秒（为了压到 3.5 MB 以内），动作会有点顿，这是刻意的取舍，
+想放流畅版就直接打开 docs/videos/waymo_dense160.mp4。
+第二，如果用 PDF 放映，动图只会停在第一帧，所以这一页请务必用 PPTX 放。
 """)
     return s
 

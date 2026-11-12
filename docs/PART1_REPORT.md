@@ -484,7 +484,8 @@ python scripts/47_plot_scaling.py
 # presentation deck: 11 content slides + 2 video-appendix slides, English text
 # with Chinese speaker notes
 python scripts/50_make_ppt_figs.py       # headline and runtime charts
-python scripts/52_make_video_sheet.py    # contact sheet + poster frame for the embedded clip
+python scripts/52_make_video_sheet.py    # contact sheet of the nine demo clips
+python scripts/53_make_gifs.py           # animated GIF for the playback slide
 python scripts/51_build_ppt.py
 ```
 

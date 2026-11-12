@@ -37,10 +37,6 @@ CLIPS = [
 ]
 ROW_LABELS = ["dense \u00b7\nmandatory", "dense \u00b7\nMip-NeRF 360", "sparse \u00b7\nN = 50"]
 
-# The clip embedded (and playable) on the following appendix slide. Waymo is the
-# most legible flythrough and only 1.1 MB, so the deck stays small.
-EMBED_CLIP = "waymo_dense160.mp4"
-
 
 def grab(path: Path, frame_no: int):
     cap = cv2.VideoCapture(str(path))
@@ -114,12 +110,6 @@ def main() -> int:
     fig.savefig(out, dpi=200, facecolor="white")
     plt.close(fig)
     print(f"{out}  {out.stat().st_size/1024:.0f} KB")
-
-    # Poster frame for the appendix slide that embeds a playable clip.
-    poster = out.with_name("ppt_video_poster.png")
-    cv2.imwrite(str(poster),
-                cv2.cvtColor(grab(vdir / EMBED_CLIP, 0), cv2.COLOR_RGB2BGR))
-    print(f"{poster}  {poster.stat().st_size/1024:.0f} KB")
     return 0
 
 
