@@ -483,9 +483,10 @@ python scripts/47_plot_scaling.py
 
 # presentation deck: 11 content slides + 2 video-appendix slides, English text
 # with Chinese speaker notes
-python scripts/50_make_ppt_figs.py       # headline and runtime charts
-python scripts/52_make_video_sheet.py    # contact sheet of the nine demo clips
-python scripts/53_make_gifs.py           # animated GIF for the playback slide
+python scripts/50_make_ppt_figs.py                     # headline and runtime charts
+python scripts/53_make_gifs.py --all --width 260 --fps 10 --colors 128   # 3x3 live grid
+python scripts/53_make_gifs.py --clip waymo_dense160.mp4 \
+    --out docs/gifs/waymo_big.gif --width 600 --fps 10 --colors 192      # playback slide
 python scripts/51_build_ppt.py
 ```
 

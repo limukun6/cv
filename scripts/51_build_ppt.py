@@ -775,29 +775,79 @@ COLMAP 的耗时是 CPU 相关的，换机器数值会变。
 
 def slide_videos(prs, figs, ctx):
     s = blank(prs)
-    header(s, "Nine flythroughs, one per scene and budget", "appendix \u00b7 demo videos")
+    header(s, "Nine flythroughs \u2014 all of them loop", "appendix \u00b7 demo videos")
 
-    add_image(s, figs / "ppt_videos.png", MX, 1.58, CW, 4.42)
+    lbl_x, lbl_w = MX, 0.86
+    x0 = MX + lbl_w + 0.12
+    cell_w, cell_h = 2.10, 1.40
+    gap_x, pitch_y = 0.12, 1.76
+    y0 = 1.56
 
-    tf = textbox(s, MX, 6.22, CW, 0.70)
+    rows = [
+        (["dl3dv-2_dense160", "re10k-1_dense160", "waymo_dense160"],
+         ["DL3DV-2", "RealEstate10K-1", "Waymo-405841"],
+         ("dense \u00b7", "mandatory")),
+        (["m360-counter_dense160", "m360-bonsai_dense160", "m360-flowers_dense160"],
+         ["counter", "bonsai", "flowers"],
+         ("dense \u00b7", "Mip-NeRF 360")),
+        (["dl3dv-2", "m360-counter", "m360-kitchen"],
+         ["DL3DV-2", "counter", "kitchen"],
+         ("sparse \u00b7", "N = 50")),
+    ]
+    gdir = figs.parent / "gifs"
+
+    for r, (files, caps, (l1, l2)) in enumerate(rows):
+        y = y0 + r * pitch_y
+        tf = textbox(s, lbl_x, y + cell_h / 2 - 0.30, lbl_w, 0.60)
+        p = tf.paragraphs[0]
+        p.alignment = PP_ALIGN.RIGHT
+        run(p, l1, size=8.4, color=BLUE, bold=True)
+        p2 = tf.add_paragraph()
+        p2.alignment = PP_ALIGN.RIGHT
+        run(p2, l2, size=8.4, color=BLUE, bold=True)
+
+        for c, (f, cap) in enumerate(zip(files, caps)):
+            x = x0 + c * (cell_w + gap_x)
+            # Fixed card behind each clip: the sources are 1:1 and 3:2, so without
+            # a card the grid columns look ragged even though they are aligned.
+            rect(s, x, y, cell_w, cell_h, BG_SOFT)
+            add_image(s, gdir / f"{f}.gif", x + 0.02, y + 0.02,
+                      cell_w - 0.04, cell_h - 0.04)
+            tf = textbox(s, x, y + cell_h + 0.05, cell_w, 0.20)
+            para(tf, True, cap, size=7.6, color=MUTED, align=PP_ALIGN.CENTER)
+
+    PX, PW = 9.05, 3.67
+    tf = textbox(s, PX, 1.58, PW, 0.3)
+    para(tf, True, "THE PACKAGE", size=9.5, color=FAINT, bold=True)
+
+    tf = textbox(s, PX, 1.94, PW, 3.4)
+    for i, line in enumerate([
+            "Nine mp4s, 8 s each at 30 fps, 69.6 MB, in docs/videos/.",
+            "Six dense (N = 160) and three at N = 50 \u2014 the same budgets the tables use.",
+            "The GIFs here are 10 fps previews, rendered from those same files.",
+            "Nothing to click: all nine loop on their own."]):
+        p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
+        p.space_after = Pt(9)
+        p.line_spacing = 1.08
+        run(p, "\u25aa  ", size=10.2, color=BLUE, bold=True)
+        run(p, line, size=10.2, color=MUTED)
+
+    tf = textbox(s, PX, 4.02, PW, 0.9)
     p = tf.paragraphs[0]
-    p.line_spacing = 1.12
-    run(p, "Six dense clips and three at N = 50, every one 8 s at 30 fps. ", size=11.5, color=INK,
-        bold=True)
-    run(p, "Rendered from the trained models by the same evaluation pass that produced the PSNR "
-           "tables, so the videos and the numbers are the same artefacts. "
-           "Package: docs/videos/, nine files, 69.6 MB.", size=11.5, color=MUTED)
+    p.line_spacing = 1.06
+    run(p, "In a PDF export they freeze on frame 1 ", size=9.5, color=AMBER, bold=True)
+    run(p, "\u2014 present from the PPTX, not the PDF.", size=9.5, color=MUTED)
 
     footer(s, 12)
     notes(s, """
-这是附录页，正式汇报时不占时间，放在最后当backup。如果老师说"有 demo 吗"，直接跳这里。
-九段视频，每段 8 秒、30fps、240 帧，是一个环绕相机轨迹。分组是按实验条件分的：
-上两行是稠密（N=160），正好覆盖三个必考场景 + 三个 Mip-NeRF 360 场景；
-最下一行是 N=50 的稀疏版本，一共三段。
-上下对比着看很有意思：同样是 DL3DV-2，N=50 那段和 N=160 那段，稠密那段明显更扎实。
-注意：文件名里没有写是哪个初始化渲染的。如果你记得是 COLMAP，被问的时候就说 COLMAP；
-不确定就别硬说，直接说"这是最终配置渲的"。
-下一页有一段可以直接点击播放的视频。
+这是附录页，正式汇报不占时间，留作backup。九段全部是动图，放映时会同时循环播放。
+分组是按实验条件：上两行是稠密（N=160），覆盖三个必考场景 + 三个 Mip-NeRF 360 场景；
+最下一行是三段 N=50 的稀疏版本。
+上下对比着看很有意思：同样 DL3DV-2，最上一行第一格是 N=160，最下一行第一格是 N=50，
+稠密那段明显更扎实。
+这九张动图是 10 fps 的预览版；原始 mp4 是 30 fps，在 docs/videos/ 里，要放流畅版就直接开那个。
+注意：导出成 PDF 时它们会停在第一帧，所以这一页必须用 PPTX 放映。
+如果被问"这些是哪个初始化渲染的"——文件名里没有信息，别猜，说"最终配置渲的"。
 """)
     return s
 
@@ -808,8 +858,8 @@ def slide_video_play(prs, figs, ctx):
 
     # Animated GIF rather than an embedded movie: it autoplays and loops in
     # slideshow with no click and no codec, which is the failure we hit with
-    # add_movie. 480x320 at 8 fps keeps it under 4 MB.
-    gif = figs.parent / "gifs" / "waymo_dense160.gif"
+    # add_movie.
+    gif = figs.parent / "gifs" / "waymo_big.gif"
     w = 6.75
     h = w * 320.0 / 480.0
     top = 1.66
@@ -843,8 +893,8 @@ def slide_video_play(prs, figs, ctx):
     p = tf.paragraphs[0]
     p.line_spacing = 1.08
     run(p, "\u25b6 Loops automatically in slide show. ", size=10.5, color=BLUE, bold=True)
-    run(p, "The other eight clips are separate mp4s in docs/videos/; embedding all nine would "
-           "add ~70 MB.", size=10.5, color=MUTED)
+    run(p, "The other eight animate on the previous page; the full 30 fps files are in "
+           "docs/videos/.", size=10.5, color=MUTED)
 
     footer(s, 13)
     notes(s, """
