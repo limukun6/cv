@@ -1,4 +1,4 @@
-run_id,scene,part,source,split,train_frames,test_frames,psnr,ssim,lpips,train_psnr,ate_rmse,t_init_s,t_train_s,t_eval_s,gpu,git_commit,notes
+﻿run_id,scene,part,source,split,train_frames,test_frames,psnr,ssim,lpips,train_psnr,ate_rmse,t_init_s,t_train_s,t_eval_s,gpu,git_commit,notes
 dl3dv-2__colmap__full__3dgs__20261029-1814,dl3dv-2,P1,colmap,full,267,39,33.8932,0.9675,0.0419,34.6080,,98.4,2370.0,352.0,RTX 5070 Laptop,7cc0523,30k iter; --eval; 256x256 native; ~420k gaussians at 7k; LPIPS=vgg/0-1
 re10k-1__colmap__full__3dgs__20261030-0937,re10k-1,P1,colmap,full,244,35,34.3487,0.9817,0.0207,34.6918,,216.0,678.0,9.1,RTX 5070 Laptop,441fbb9,30k iter; --eval; 256x256 native; convergence curve logged; LPIPS=vgg/0-1
 dl3dv-2__colmap__full__3dgs__20261030-0952,dl3dv-2,P1,colmap,full,267,39,33.4117,0.9657,0.0457,34.4900,,98.4,1104.0,9.1,RTX 5070 Laptop,586d0cc,30k iter; --eval; convergence curve logged; LPIPS=vgg/0-1; repeat of 1814 run (variance +0.48dB)
@@ -73,3 +73,7 @@ m360-counter__colmap__n160__3dgs__20261105-1005,m360-counter,P1,colmap,n160,160,
 m360-counter__vggt__n160__3dgs__20261105-1151,m360-counter,P1,vggt,n160,160,,23.6577,0.744,0.3482,,,,,,RTX 4080S 32G,m360dense,Mip-NeRF 360 稠密 160（加分项）
 m360-flowers__colmap__n160__3dgs__20261105-1330,m360-flowers,P1,colmap,n160,160,,21.4946,0.5957,0.3438,,,,,,RTX 4080S 32G,m360dense,Mip-NeRF 360 稠密 160（加分项）；穷举匹配修好 173/173（原序列匹配只连通 34 张）
 m360-flowers__vggt__n160__3dgs__20261105-1316,m360-flowers,P1,vggt,n160,160,,15.5075,0.2155,0.5902,,,,,,RTX 4080S 32G,m360dense,Mip-NeRF 360 稠密 160（加分项）；conf_thres 降到 2.0 才有 10 万点（默认 5.0 会导出 0 点）
+m360-counter__colmap__n160__3dgs__20261112-1339,m360-counter,P1,colmap,n160,160,30,28.8059,0.904,0.2036,31.5184,,3213.4,1976.0,450.8,rented,p1-matrix,N=160 train / 30 test; poses from colmap; LPIPS=vgg/0-1; -r 1
+m360-bonsai__colmap__n160__3dgs__20261112-1412,m360-bonsai,P1,colmap,n160,160,37,30.5597,0.9219,0.2217,32.2355,,0.0,5327.7,14.5,rented,p1-matrix,N=160 train / 37 test; poses from colmap; LPIPS=vgg/0-1; -r 1
+m360-counter__vggt_omega__n160__3dgs__20261112-1552,m360-counter,P1,vggt_omega,n160,160,30,23.7232,0.7361,0.3613,,,100.4,1482.7,12.7,RTX 4090,omega-pipeline,N=160; VGGT-Omega 416-reproduce; export+inference time; LPIPS=vgg/0-1
+m360-bonsai__vggt_omega__n160__3dgs__20261112-1620,m360-bonsai,P1,vggt_omega,n160,160,37,25.9227,0.7993,0.3158,,,98.4,1401.0,14.6,RTX 4090,omega-pipeline,N=160; VGGT-Omega 416-reproduce; export+inference time; LPIPS=vgg/0-1

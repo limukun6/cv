@@ -19,7 +19,7 @@ fastest and most accurate when a scene is densely observed: classical SfM, a
 feed-forward foundation model, or its scaled successor. Comparing **COLMAP**,
 **VGGT-1B** and **VGGT-Ω** on the three mandatory scenes along the four axes the
 brief names — initialization runtime, pose accuracy, convergence, and rendering
-quality — we find that **COLMAP produces the best renders on all three scenes**, by
+quality — we find that **COLMAP produces the best renders on all three mandatory scenes**, by
 **+3.09 / +6.69 / +9.28 dB** over VGGT-1B at 160 training views.
 
 The mechanism is not pose accuracy. We show that **COLMAP's pose error collapses
@@ -63,7 +63,9 @@ co-equal result, because Part 1's stated input is dense observation.
    very differently, with VGGT-Ω gaining least.
 4. A catalogue of seven silent failure modes with the diagnostic that catches each.
 5. An additional-dataset check on Mip-NeRF 360 where the COLMAP advantage reproduces
-   at **+5.8 to +14.2 dB**.
+   at **+5.1 and +4.6 dB** on re-derived splits — and the discovery, while re-deriving
+   them, that the earlier Mip-NeRF 360 numbers were **not reproducible and had inflated
+   COLMAP's own score by ~0.7 dB**.
 
 ---
 
@@ -294,19 +296,40 @@ deterministic, confidence-ranked one, which we did not implement.
 ### 3.7 Additional dataset (bonus requirement)
 
 Mip-NeRF 360 — explicitly listed as optional data in the brief and the benchmark of
-the original 3DGS paper. COLMAP is always run by us on the same frames rather than
+the original 3DGS paper. COLMAP is always re-run by us on the same frames rather than
 reusing the bundled all-frame model.
 
-| Scene | Images | COLMAP | VGGT-1B | Gap |
-|---|---|---|---|---|
-| counter | 240 | **29.47** | 23.66 | +5.81 |
-| bonsai | 292 | **31.27** | 17.03 | **+14.24** |
-| flowers | 173 | **21.49** | 15.51 | +5.99 |
+**This subset was re-run from scratch, because the archived rows are not
+reproducible.** They recorded `train_frames = 160` for `flowers` — a scene with only
+173 images, of which at most **151** are trainable under the `llffhold = 8`
+convention of §2.1. Re-deriving the splits gives `full.txt` sizes of 210 / 255 / **151**
+for counter / bonsai / flowers, so 160 was impossible for `flowers`; the archived batch
+must have used a different, unrecorded split. Rather than cite numbers we cannot
+regenerate, the two scenes that completed are re-run below on verified splits.
 
-The COLMAP advantage reproduces at **+5.8 to +14.2 dB**, the same order as on the
-mandatory scenes. On `bonsai`, VGGT-1B gets *worse* with more views (19.05 → 17.03 dB
-from N=50 to N=160) while COLMAP improves — the §4.2 asymmetry in stronger form.
-These six configurations have n = 1 and no significance test.
+| Scene | Images | N train | COLMAP | VGGT-Ω | Gap (CM − Ω) |
+|---|---|---|---|---|---|
+| counter | 240 | 160 | **28.81** | 23.72 | **+5.09** |
+| bonsai | 292 | 160 | **30.56** | 25.92 | **+4.64** |
+
+COLMAP wins both scenes by **+5.1 and +4.6 dB** — the same order as on the mandatory
+scenes, on a benchmark we did not tune on. Two things follow.
+
+**(1) The archived numbers were inflated by about 0.7 dB.** On the verified splits
+COLMAP itself falls from 29.47 to 28.81 (counter) and from 31.27 to 30.56 (bonsai) — a
+consistent, same-direction shift of the size one expects if the archived split admitted
+test frames into training. Every value quoted here is from the re-run.
+
+**(2) VGGT-Ω is far ahead of VGGT-1B on this dataset.** Ω reaches 25.92 dB on `bonsai`
+against the archived 17.03 dB for VGGT-1B, while COLMAP moved by only 0.7 dB — so the
+gain is Ω's, not an artefact of the split change. This is the strongest instance in the
+report of the §3.1 ordering "Ω > 1B".
+
+`flowers` was dropped: its exhaustive matching (needed because sequential matching
+connects only 34 of its 173 images) had completed 6 of 16 matching blocks after 85
+minutes, and the remaining budget did not justify the wait. **These four configurations
+have n = 1 and no significance test, and they compare against Ω rather than VGGT-1B, so
+they corroborate the §3.1 ordering without being a like-for-like extension of it.**
 
 ---
 
@@ -438,8 +461,14 @@ reference" is a first-class experimental step, not debugging.
    std 0.07–0.23 dB) is an order of magnitude smaller than this export-level spread.
    Re-running the whole pipeline on a second machine (§3.6) reproduced 8 of 9
    configurations to within 0.12 dB; this was the only one that moved.
-2. **Additional dataset is single-seed.** The six Mip-NeRF 360 configurations have
-   n = 1; the +5.8 to +14.2 dB gaps transfer but carry no significance test.
+2. **Additional dataset is single-seed, and was re-run.** The four surviving Mip-NeRF 360
+   configurations are n = 1 and carry no significance test, and they compare against
+   VGGT-Ω rather than VGGT-1B. The archived values could not be reproduced — `flowers`
+   was recorded as training on 160 frames when only 151 exist under `llffhold = 8` — so
+   that table was withdrawn rather than cited. On the verified splits COLMAP itself loses
+   ~0.7 dB, which is the signature of a split that admitted test frames. `flowers` is
+   absent entirely because its exhaustive matching did not finish inside the session
+   budget.
 3. **"Dense" means a dense-view regime, not every frame.** Re10k-1 matches its
    full-sequence baseline to 0.04 dB, but DL3DV-2 and Waymo-405841 remain 1.2 and
    2.6 dB below.
@@ -452,10 +481,15 @@ reference" is a first-class experimental step, not debugging.
 ## 7. Conclusion
 
 Under a controlled dense view budget, **COLMAP-initialized 3DGS produces the best
-renders on all three scenes** (+3.1 / +6.7 / +9.3 dB over VGGT-1B, and +3.8 / +1.8 /
-+8.0 dB over VGGT-Ω, in DL3DV-2 / Re10k-1 / Waymo-405841 order), and the margin
-**widens** as observations accumulate because COLMAP's pose error falls 4–6× while
-feed-forward pose error does not move.
+renders in all five scenes we ran** (+3.1 / +6.7 / +9.3 dB over VGGT-1B, and +3.8 / +1.8
+/ +8.0 dB over VGGT-Ω, in DL3DV-2 / Re10k-1 / Waymo-405841 order; plus +5.1 / +4.6 dB
+over VGGT-Ω on the two Mip-NeRF 360 scenes of §3.7), and the margin **widens** as
+observations accumulate because COLMAP's pose error falls 4–6× while feed-forward pose
+error does not move.
+
+The Mip-NeRF 360 pair is a **replication, not a pooled sample**: two scenes, one seed
+each, compared against Ω rather than VGGT-1B, on splits we had to re-derive because the
+archived ones were not reproducible. It is reported for direction, not for magnitude.
 
 **VGGT-Ω is the strongest feed-forward option and by far the most reproducible**
 (std 0.03–0.07 dB), and it actually *beats COLMAP at 50 views on DL3DV-2* — but it is

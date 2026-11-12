@@ -595,76 +595,81 @@ def slide_m360(prs, figs, ctx):
     para(tf, True, "THE 3DGS PAPER'S OWN BENCHMARK \u2014 OPTIONAL IN THE BRIEF",
          size=9.5, color=FAINT, bold=True)
 
-    table(s, [["Scene", "Images", "COLMAP", "VGGT-1B", "Gap"],
-              ["counter", "240", "29.47", "23.66", "+5.81"],
-              ["bonsai", "292", "31.27", "17.03", "+14.24"],
-              ["flowers", "173", "21.49", "15.51", "+5.99"]],
-          left=MX, top=2.10, width=6.40, col_w=[1.8, 1.2, 1.5, 1.5, 1.3],
-          size=13, head_size=11, header_h=0.44, row_h=0.56,
-          aligns=[PP_ALIGN.LEFT] + [PP_ALIGN.RIGHT] * 4,
-          highlight={(1, 2): BLUE, (2, 2): BLUE, (3, 2): BLUE, (2, 4): INK},
+    table(s, [["Scene", "Images", "N trained", "COLMAP", "VGGT-\u03a9", "Gap"],
+              ["counter", "240", "160", "28.81", "23.72", "+5.09"],
+              ["bonsai", "292", "160", "30.56", "25.92", "+4.64"]],
+          left=MX, top=2.10, width=6.55, col_w=[1.7, 1.15, 1.35, 1.35, 1.35, 1.15],
+          size=12.5, head_size=10.5, header_h=0.44, row_h=0.56,
+          aligns=[PP_ALIGN.LEFT] + [PP_ALIGN.RIGHT] * 5,
+          highlight={(1, 3): BLUE, (2, 3): BLUE, (2, 5): INK},
           first_col_bold=True)
 
-    tf = textbox(s, MX, 4.40, 6.4, 0.6)
-    p = tf.paragraphs[0]
-    p.line_spacing = 1.08
-    run(p, "COLMAP is re-run by us on the same frames", size=10.5, color=MUTED, bold=True)
-    run(p, ", not the bundled all-frame model \u2014 otherwise the comparison would not be "
-           "like-for-like.", size=10.5, color=MUTED)
+    tf = textbox(s, MX, 4.36, 6.55, 1.5)
+    for i, line in enumerate([
+            "Re-run from scratch on verified splits \u2014 the archived rows recorded 160 "
+            "training frames for flowers, which has only 151.",
+            "COLMAP's own score drops ~0.7 dB on the corrected splits: the signature of a "
+            "split that let test frames into training."]):
+        p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
+        p.space_after = Pt(8)
+        p.line_spacing = 1.08
+        run(p, "\u2014  ", size=10.2, color=BLUE, bold=True)
+        run(p, line, size=10.2, color=MUTED)
 
-    PX, PW = 7.15, 5.55
+    PX, PW = 7.45, 5.25
     tf = textbox(s, PX, 1.72, PW, 0.3)
     para(tf, True, "WHAT IT SHOWS", size=9.5, color=FAINT, bold=True)
 
-    tf = textbox(s, PX, 2.10, PW, 1.10)
+    tf = textbox(s, PX, 2.10, PW, 1.15)
     p = tf.paragraphs[0]
     p.line_spacing = 1.10
-    run(p, "+5.8 to +14.2 dB. ", size=12.5, color=INK, bold=True)
-    run(p, "The COLMAP advantage is the same order as on the three mandatory scenes, on a "
+    run(p, "+5.1 and +4.6 dB. ", size=12.5, color=INK, bold=True)
+    run(p, "COLMAP wins both scenes \u2014 the same order as the mandatory scenes, on a "
            "benchmark we did not tune on.", size=12.5, color=MUTED)
 
-    tf = textbox(s, PX, 3.02, PW, 1.55)
+    tf = textbox(s, PX, 3.25, PW, 1.55)
     p = tf.paragraphs[0]
     p.line_spacing = 1.10
-    run(p, "bonsai is the strongest form of the scaling asymmetry. ", size=12.5, color=INK, bold=True)
-    run(p, "Going from 50 to 160 views, COLMAP improves (28.33 \u2192 31.27 dB) while "
-           "VGGT-1B gets ", size=12.5, color=MUTED)
-    run(p, "worse", size=12.5, color=RED, bold=True)
-    run(p, " (19.05 \u2192 17.03 dB).", size=12.5, color=MUTED)
+    run(p, "\u03a9 is far ahead of VGGT-1B here. ", size=12.5, color=INK, bold=True)
+    run(p, "25.92 dB on bonsai against the archived 17.03 for VGGT-1B, while COLMAP moved "
+           "only 0.7 dB \u2014 so the gain is \u03a9's, not the split's.", size=12.5, color=MUTED)
 
-    rect(s, PX, 4.44, PW, 0.74, BG_SOFT)
-    rect(s, PX, 4.44, 0.055, 0.74, AMBER)
-    tf = textbox(s, PX + 0.22, 4.55, PW - 0.44, 0.56)
+    rect(s, PX, 4.80, PW, 1.18, BG_SOFT)
+    rect(s, PX, 4.80, 0.055, 1.18, AMBER)
+    tf = textbox(s, PX + 0.22, 4.92, PW - 0.44, 1.00)
     p = tf.paragraphs[0]
-    p.line_spacing = 1.08
-    run(p, "Caveats. ", size=10.5, color=AMBER, bold=True)
-    run(p, "Six configurations, n = 1, no significance test. VGGT-\u03a9 was not run here. "
-           "kitchen is absent from the weights mirror we used, so flowers was substituted.",
-        size=10.5, color=MUTED)
+    p.line_spacing = 1.06
+    run(p, "Caveats. ", size=9.8, color=AMBER, bold=True)
+    run(p, "n = 1 per configuration, no significance test, and the comparison is against "
+           "VGGT-\u03a9 rather than VGGT-1B. flowers is absent: its exhaustive matching did "
+           "not finish in the session budget.", size=9.8, color=MUTED)
 
     rect(s, MX, 6.28, CW, 0.60, BG_SOFT)
     rect(s, MX, 6.28, 0.055, 0.60, BLUE)
     tf = textbox(s, MX + 0.22, 6.38, CW - 0.44, 0.42)
     p = tf.paragraphs[0]
-    run(p, "3 of 3 scenes, same direction, no reversal \u2014 ", size=11.5, color=INK, bold=True)
-    run(p, "the optional-deliverable check passes, and on a benchmark we never tuned on.",
-        size=11.5, color=MUTED)
+    run(p, "2 of 2 scenes, same direction, no reversal \u2014 ", size=11.5, color=INK, bold=True)
+    run(p, "the optional-deliverable check passes, and it surfaced a real defect in the "
+           "earlier numbers.", size=11.5, color=MUTED)
 
     footer(s, 9)
     notes(s, """
-这一页是加分项，也补上一个逻辑漏洞：报告第 6 节提到 Mip-NeRF 360 只有单种子，
-如果 deck 里完全不出现它，这个 limitation 就成了悬空引用。
-Mip-NeRF 360 是任务书里明确列为可选的额外数据集，也是原始 3DGS 论文自己的基准。
-我们跑的时候没有复用官方打包的全帧 COLMAP 模型，而是自己用同样的帧重跑了一遍，
-否则比较不是同口径的——这一点写在左下角。
-结果：COLMAP 领先 +5.8 到 +14.2 dB，和三个必考场景是同一个量级。
-这说明结论不是挑场景挑出来的。
-右边第二条是我觉得最有说服力的：bonsai 上从 50 视角加到 160 视角，
-COLMAP 从 28.33 涨到 31.27，而 VGGT-1B 反而从 19.05 掉到 17.03。
-给更多数据，经典方法变好、前馈方法变差——这是第 8 页 scaling 那张图的最强版本。
-右下角主动交代 caveat：六个配置都是单次运行，没有做显著性检验；
-这个数据集上没跑 VGGT-Ω；另外我们用的权重镜像里没有 kitchen，所以用 flowers 顶替。
-如果被问"为什么不是同一批场景"，就说是镜像缺场景，不是我们挑有利的跑。
+这一页是加分项。任务书把 Mip-NeRF 360 列为可选数据集，它也是原始 3DGS 论文自己的基准。
+重跑的原因要主动讲：**旧记录不可复现**。旧表里 flowers 记着训练 160 帧，
+但这个场景总共才 173 张图，按每 8 张留 1 张做测试，最多只有 151 帧可训练。
+我们重新生成划分，三个场景的训练池是 210 / 255 / 151，160 对 flowers 根本不可能。
+所以旧批次当时用的是另一套没记录的划分。
+与其引用一组自己都复现不出来的数字，不如重跑。现在是两个场景：
+counter 28.81 对 Ω 23.72，bonsai 30.56 对 Ω 25.92，COLMAP 分别领先 5.1 和 4.6 dB。
+**第二件更有价值的事**：在新划分下，COLMAP 自己的分数也从 29.47 掉到 28.81、
+31.27 掉到 30.56，两个场景同向、幅度都是 0.7 dB 左右。
+这正是「旧划分把测试帧混进了训练集」会造成的现象。所以这次重跑不只是补一个 Ω，
+它还查出了一个真实缺陷。
+第三点：Ω 在这里明显强于 VGGT-1B——bonsai 上 25.92 对旧记录的 17.03，
+而 COLMAP 只动了 0.7 dB，所以这个提升是 Ω 带来的，不是划分换来的。
+右下角主动交代 caveat：每个配置 n=1，没有显著性检验；而且比的是 Ω 不是 1B，
+所以它只能作为「同向复现」，不能和主表拼在一起做统计。
+flowers 缺席是因为它的穷举匹配 85 分钟只做完 16 个块里的 6 个，预算不允许。
 """)
     return s
 
