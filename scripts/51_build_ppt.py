@@ -43,7 +43,7 @@ CJK_FONT = "\u5fae\u8f6f\u96c5\u9ed1"      # Microsoft YaHei, for the notes
 W, H = 13.333, 7.5
 MX = 0.62                                   # left/right margin
 CW = W - 2 * MX                             # content width
-NTOTAL = 13                                 # slides in the deck, for "n / N"
+NTOTAL = 14                                 # slides in the deck, for "n / N"
 
 
 # ---------------------------------------------------------------- helpers ---
@@ -734,7 +734,7 @@ def slide_conclusion(prs, figs, ctx):
          "and it beats COLMAP at 50 views on DL3DV-2 \u2014 but it gains least from more views and falls to last place."),
         ("The decisive variable is point-cloud topology.", "Track length 8.19 for triangulation vs 1.000 for "
          "per-frame depth unprojection."),
-        ("What data-driven scaling buys:", "a 70\u2013100 s, resolution-insensitive, highly reproducible initializer "
+        ("What data-driven scaling buys:", "a 70\u2013220 s, resolution-insensitive, highly reproducible initializer "
          "\u2014 at the cost of 3\u20139 dB of fidelity."),
     ]
     y = 3.02
@@ -912,6 +912,59 @@ def slide_video_play(prs, figs, ctx):
     return s
 
 
+def slide_pointcloud(prs, figs, ctx):
+    s = blank(prs)
+    header(s, "What comes out: 7,860 seed points become 507,766 Gaussians",
+           "appendix \u00b7 geometry")
+
+    add_image(s, figs / "p1_pointcloud.png", MX, 1.60, 7.95, 4.45)
+
+    PX, PW = 8.80, 3.92
+    tf = textbox(s, PX, 1.64, PW, 0.3)
+    para(tf, True, "WHAT YOU ARE LOOKING AT", size=9.5, color=FAINT, bold=True)
+
+    items = [
+        ("Left: the seed.", "COLMAP's triangulated cloud, 7,860 points, each observed by 8.19 "
+         "images on average."),
+        ("Right: the result.", "After 30 k iterations the model holds 507,766 Gaussians \u2014 "
+         "65\u00d7 more primitives, and the plaza is now legible."),
+        ("This is what the videos are rendered from.", "Not the photographs: these Gaussians, "
+         "projected from arbitrary camera poses."),
+    ]
+    y = 1.98
+    for lead, rest in items:
+        tf = textbox(s, PX, y, PW, 1.15)
+        p = tf.paragraphs[0]
+        p.line_spacing = 1.06
+        run(p, lead, size=10.5, color=INK, bold=True)
+        p2 = tf.add_paragraph()
+        p2.space_before = Pt(3)
+        p2.line_spacing = 1.06
+        run(p2, rest, size=10, color=MUTED)
+        y += 1.02
+
+    rect(s, PX, 5.10, PW, 1.02, BG_SOFT)
+    rect(s, PX, 5.10, 0.055, 1.02, AMBER)
+    tf = textbox(s, PX + 0.22, 5.20, PW - 0.44, 0.84)
+    p = tf.paragraphs[0]
+    p.line_spacing = 1.06
+    run(p, "Not the track-length evidence. ", size=9.8, color=AMBER, bold=True)
+    run(p, "That comparison needs VGGT's exported cloud, which was never pulled off the "
+           "instance \u2014 the 8.19 vs 1.000 gap is reported as numbers only.", size=9.8, color=MUTED)
+
+    footer(s, 14)
+    notes(s, """
+附录最后一页，回答"你们到底输出了什么几何"。
+左边是 COLMAP 三角化出来的种子点云，7,860 个点，每个点平均被 8.19 张图看到。
+右边是 30k 次迭代之后，同一场景变成了 507,766 个高斯——多了 65 倍，广场、树篱、地砖都能看出来了。
+两张图用的是同一次运行、同一台相机、同一个投影，所以是严格的前后对比。
+右下角那句要主动说：这张图不是 track length 那个论点的证据。
+那个对比需要 VGGT 导出的点云，而它当时没从实例上拉回来，所以 8.19 对 1.000 只能以数字形式报。
+如果被问"能不能看点云"，就停在这一页；这两个 PLY 文件都在本地，可以直接用 MeshLab 打开。
+""")
+    return s
+
+
 # ------------------------------------------------------------------- main ---
 def build(out: Path, figs: Path) -> Path:
     prs = Presentation()
@@ -924,7 +977,8 @@ def build(out: Path, figs: Path) -> Path:
     ctx = {}
     for fn in (slide_title, slide_setup, slide_result, slide_qual, slide_mechanism,
                slide_convergence, slide_speed, slide_scaling, slide_m360,
-               slide_failures, slide_conclusion, slide_videos, slide_video_play):
+               slide_failures, slide_conclusion, slide_videos, slide_video_play,
+               slide_pointcloud):
         fn(prs, figs, ctx)
 
     out.parent.mkdir(parents=True, exist_ok=True)

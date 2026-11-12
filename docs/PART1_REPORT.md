@@ -30,7 +30,7 @@ both feed-forward exporters emit per-frame depth unprojections (**mean track len
 1.000**) rather than multi-view triangulations (COLMAP: **8.19**), so 3DGS must
 reconcile mutually unconstrained samples.
 
-Feed-forward initialization is meanwhile **70–100 s regardless of resolution**
+Feed-forward initialization is meanwhile **70–220 s regardless of resolution**
 against COLMAP's 57 → 1 950 s, and **far more reproducible** (std 0.03–0.23 dB versus
 0.03–1.40 dB). Two silent failure modes we had to eliminate each moved results by
 **13 dB** — more than any effect reported as a finding.
@@ -456,7 +456,7 @@ of multi-view triangulations (8.19), so 3DGS must reconcile mutually unconstrain
 samples. That is why at 50 views COLMAP can have the worst poses in the table and the
 best renders.
 
-**What data-driven scaling brings, in one sentence:** a 70–100 s initializer that is
+**What data-driven scaling brings, in one sentence:** a 70–220 s initializer that is
 insensitive to resolution and highly reproducible, at the cost of 3–9 dB of rendering
 fidelity and a point cloud that does not improve the way triangulated geometry does as
 observations accumulate.
@@ -487,6 +487,7 @@ python scripts/50_make_ppt_figs.py                     # headline and runtime ch
 python scripts/53_make_gifs.py --all --width 260 --fps 10 --colors 128   # 3x3 live grid
 python scripts/53_make_gifs.py --clip waymo_dense160.mp4 \
     --out docs/gifs/waymo_big.gif --width 600 --fps 10 --colors 192      # playback slide
+python scripts/54_plot_pointclouds.py                                    # seed cloud vs Gaussians
 python scripts/51_build_ppt.py
 ```
 
