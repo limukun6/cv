@@ -505,20 +505,21 @@ def slide_speed(prs, figs, ctx):
 
     tf = textbox(s, 9.18, 1.70, 3.55, 0.3)
     para(tf, True, "READING THE CHART", size=9.5, color=FAINT, bold=True)
-    tf = textbox(s, 9.18, 2.04, 3.55, 3.9)
+    tf = textbox(s, 9.18, 2.04, 3.55, 1.85)
     for i, line in enumerate([
-            "Feed-forward: 70\u2013220 s regardless of input resolution (every input is "
-            "normalized to a fixed 512\u00b2 window).",
-            "COLMAP: 133 s \u2192 1 950 s as resolution grows from 256\u00b2 to 1920\u00d71280."]):
+            "Feed-forward: 70\u2013220 s at any resolution \u2014 every input is normalized to a "
+            "fixed 512\u00b2 window.",
+            "COLMAP: 133 s \u2192 1 950 s as resolution grows from 256\u00b2 to 1920\u00d71280.",
+            "kitchen: 782 s on only 85 views \u2014 5.9\u00d7 DL3DV's cost at a quarter of the frames."]):
         p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
-        p.space_after = Pt(10)
-        p.line_spacing = 1.10
-        run(p, "\u2014  ", size=11.5, color=BLUE, bold=True)
-        run(p, line, size=11.5, color=MUTED)
+        p.space_after = Pt(9)
+        p.line_spacing = 1.08
+        run(p, "\u2014  ", size=10.8, color=BLUE, bold=True)
+        run(p, line, size=10.8, color=MUTED)
 
-    tf = textbox(s, 9.18, 4.30, 3.55, 0.3)
+    tf = textbox(s, 9.18, 4.20, 3.55, 0.3)
     para(tf, True, "AND IT REPRODUCES", size=9.5, color=FAINT, bold=True)
-    tf = textbox(s, 9.18, 4.64, 3.55, 2.0)
+    tf = textbox(s, 9.18, 4.54, 3.55, 1.9)
     for i, (lead, rest, col) in enumerate([
             ("8 of 9 configurations", " reproduced to within 0.12 dB on a second GPU, "
              "rebuilt from scratch.", INK),
@@ -526,18 +527,22 @@ def slide_speed(prs, figs, ctx):
              "np.random.choice.", RED)]):
         p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
         p.space_after = Pt(9)
-        p.line_spacing = 1.10
-        run(p, "\u25aa  ", size=11.5, color=col, bold=True)
-        run(p, lead, size=11.5, color=col, bold=True)
-        run(p, rest, size=11.5, color=MUTED)
+        p.line_spacing = 1.08
+        run(p, "\u25aa  ", size=10.8, color=col, bold=True)
+        run(p, lead, size=10.8, color=col, bold=True)
+        run(p, rest, size=10.8, color=MUTED)
 
     footer(s, 7)
     notes(s, """
 这一页同时讲速度和稳定性，因为这两个是一体两面：前馈模型快，而且稳定；COLMAP 强，但贵且抖。
-左图是初始化耗时，横轴对数。三个场景，输入分辨率从 256 平方到 1920×1280。
+左图是初始化耗时，横轴对数。四个场景，按输入分辨率从小到大排：DL3DV 和 Re10k 是 256 平方，
+Mip-NeRF 360 的 kitchen 是 1559×1039，Waymo 是 1920×1280。
 红色和绿色几乎是平的：70 到 220 秒，因为不管输入多大，都先归一化到 512 平方的窗口。
-蓝色一路暴涨：DL3DV 133 秒，Waymo 1950 秒，也就是 32.5 分钟，13.7 倍。
-而且这 32.5 分钟里，特征提取只占 53 秒、匹配 258 秒，剩下 27 分钟全花在增量式建图和光束法平差上。
+蓝色一路暴涨：133 → 270 → 782 → 1950 秒，从 256 平方到 1920×1280 是 14.7 倍。
+这里注意 kitchen 那一行：它只有 85 个视角，比 DL3DV 的 199 个少了六成，
+但耗时是 782 秒，反而是 DL3DV 的 5.9 倍——说明**决定 COLMAP 成本的是像素数，不是帧数**。
+这也是为什么这一行值得画进来。另外它没有前馈模型的耗时，图上有标注，不是我们漏标。
+Waymo 那 32.5 分钟里，特征提取只占 53 秒、匹配 258 秒，剩下 27 分钟全花在增量式建图和光束法平差上。
 右边讲复现性。我们换了一台机器、重新建环境、重新下权重、重跑整条流程，
 九个配置里八个复现到 0.12 dB 以内。唯一跑偏的就是 VGGT-1B 在 DL3DV 上，
 从 29 降到 21.4。我们追到根因了：官方导出脚本用了一个没设种子的随机抽样。

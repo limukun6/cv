@@ -198,9 +198,12 @@ much it is given; feed-forward accuracy is not.
 | Waymo-405841 (1920×1280) | 185 | **1 950 s (32.5 min)** | 156 s | ~120 s |
 | M360 kitchen (1559×1039) | 85 | **782 s** | — | — |
 
-COLMAP grows by **13.7×** between 256² and ≈1558² imagery (57 s → 782 s) while the
+COLMAP grows by **13.7×** between 256² and ≈1558² imagery (57 s at 89 frames → 782 s at
+85 frames — both from the sparse-phase timing set, so the frames are matched) while the
 feed-forward backends stay within 70–222 s, because they normalize every input to a
-fixed 512² window. Waymo is the extreme case: 32.5 minutes against 2.6 minutes, of
+fixed 512² window. Note that the kitchen row costs **5.9× the DL3DV row with a quarter of
+the frames**: for COLMAP it is the pixel count that sets the bill, not the view count.
+Waymo is the extreme case: 32.5 minutes against 2.6 minutes, of
 which feature extraction (53 s) and sequential matching (258 s) account for only five
 — the remaining 27 minutes are incremental mapping and bundle adjustment. For the M360
 kitchen scene the split is feature extraction 42.3 s, matching 284.3 s, mapping 455.0 s.

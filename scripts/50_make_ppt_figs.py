@@ -46,17 +46,22 @@ STD = {
 }
 
 # --- PART1_REPORT.md 3.3 ---------------------------------------------------
+# Ordered by input resolution, not by scene name: the point of the chart is that
+# COLMAP's cost tracks pixel count. kitchen is a bonus-phase run (85 views, not
+# ~190), which is labelled on the axis because the frame counts differ -- fewer
+# views and 5.9x the wall-clock makes the resolution argument stronger, not weaker.
 RUNTIME_SCENES = ["DL3DV-2\n(256\u00b2, 199 views)",
                   "RealEstate10K-1\n(256\u00b2, 195 views)",
+                  "Mip-NeRF 360 kitchen\n(1559\u00d71039, 85 views)",
                   "Waymo-405841\n(1920\u00d71280, 185 views)"]
 RUNTIME = {
-    "colmap": [133.0, 270.0, 1950.0],
-    "vggt":   [162.0, 222.0, 156.0],
-    "omega":  [96.0, 102.0, 120.0],
+    "colmap": [133.0, 270.0, 782.0, 1950.0],
+    "vggt":   [162.0, 222.0, None, 156.0],
+    "omega":  [96.0, 102.0, None, 120.0],
 }
-APPROX = {"colmap": [False, False, False],
-          "vggt":   [False, False, False],
-          "omega":  [False, False, True]}   # Waymo \u03a9 is ~120 s
+APPROX = {"colmap": [False, False, False, False],
+          "vggt":   [False, False, False, False],
+          "omega":  [False, False, False, True]}   # Waymo \u03a9 is ~120 s
 
 
 def _style_axes(ax, grid_axis="y"):
@@ -113,22 +118,32 @@ def headline(out: Path) -> None:
 
 
 def runtime(out: Path) -> None:
-    fig, ax = plt.subplots(figsize=(8.6, 4.3))
+    fig, ax = plt.subplots(figsize=(8.6, 4.75))
     y = np.arange(len(RUNTIME_SCENES))
     height = 0.255
 
     for i, key in enumerate(ORDER):
         off = (i - 1) * height
         vals = RUNTIME[key]
-        bars = ax.barh(y + off, vals, height * 0.92,
-                       color=STYLE[key]["color"], label=STYLE[key]["label"], zorder=3)
-        for b, v, apx in zip(bars, vals, APPROX[key]):
-            txt = (f"~{v:.0f} s" if apx else f"{v:.0f} s")
-            if v >= 1000 and not apx:
+        # None = this backend was not timed on that scene (kitchen, bonus phase)
+        idx = [j for j, v in enumerate(vals) if v is not None]
+        bars = ax.barh([y[j] + off for j in idx], [vals[j] for j in idx],
+                       height * 0.92, color=STYLE[key]["color"],
+                       label=STYLE[key]["label"], zorder=3)
+        for b, j in zip(bars, idx):
+            v = vals[j]
+            txt = (f"~{v:.0f} s" if APPROX[key][j] else f"{v:.0f} s")
+            if v >= 1000 and not APPROX[key][j]:
                 txt = f"{v/60:.1f} min"
             ax.text(v * 1.10, b.get_y() + b.get_height() / 2, txt,
                     va="center", ha="left", fontsize=9.5,
                     color=STYLE[key]["color"], fontweight="bold")
+
+    # kitchen has no feed-forward timing; say so instead of leaving a hole.
+    k = RUNTIME_SCENES.index("Mip-NeRF 360 kitchen\n(1559\u00d71039, 85 views)")
+    ax.text(RUNTIME["colmap"][k] * 1.10, y[k] + height * 1.35,
+            "feed-forward not timed on this scene", va="center", ha="left",
+            fontsize=7.8, color=MUTED, style="italic")
 
     ax.set_xscale("log")
     ax.set_xlim(60, 9000)
@@ -138,7 +153,7 @@ def runtime(out: Path) -> None:
     ax.set_xlabel("initialization wall-clock (s, log scale)", fontsize=10, color=MUTED)
     _style_axes(ax, grid_axis="x")
     ax.legend(frameon=False, fontsize=9.5, ncol=3, loc="lower right", labelcolor=INK)
-    ax.text(0.0, 1.02, "COLMAP grows 13.7\u00d7 with resolution; feed-forward stays flat",
+    ax.text(0.0, 1.02, "COLMAP's cost tracks input resolution; the feed-forward backends stay flat",
             transform=ax.transAxes, fontsize=8.5, color=MUTED, style="italic")
     fig.tight_layout()
     fig.savefig(out, dpi=200, bbox_inches="tight", facecolor="white")
