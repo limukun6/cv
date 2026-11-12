@@ -155,9 +155,9 @@ metric:
 > COLMAP and VGGT-Ω columns reproduced to within 0.6 dB when we re-ran the entire
 > pipeline on a second machine.
 
-![Figure 3 — qualitative comparison on DL3DV-2](figures/p1_qual_dl3dv-2.png)
+![Figure 1 — qualitative comparison on DL3DV-2](figures/p1_qual_dl3dv-2.png)
 
-*Figure 3. The three initializations rendered at identical test views (DL3DV-2, N = 160).
+*Figure 1. The three initializations rendered at identical test views (DL3DV-2, N = 160).
 Corner labels are per-view PSNR; column headers are scene means. VGGT-1B loses the fine
 structure of the red foliage and the paving joints, while VGGT-Ω retains shape but shows
 colour drift — the quantitative ordering is visible by eye. **The VGGT-1B column here
@@ -210,9 +210,9 @@ kitchen scene the split is feature extraction 42.3 s, matching 284.3 s, mapping 
 
 ### 3.4 Convergence
 
-![Figure 1 — convergence curves at N = 160](figures/p1_convergence_n160.png)
+![Figure 2 — convergence curves at N = 160](figures/p1_convergence_n160.png)
 
-*Figure 1. Test PSNR against training iteration for all nine configurations at the
+*Figure 2. Test PSNR against training iteration for all nine configurations at the
 dense setting. Hollow circles mark the two configurations that peak before 30 k and
 then decay.*
 
@@ -337,11 +337,23 @@ they deliver competitive poses and dense but unconstrained geometry. The natural
 follow-up, which we did not run, is to keep VGGT's poses and re-triangulate points
 from multi-view correspondences.
 
+![Figure 3 — the seed cloud and the trained Gaussians](figures/p1_pointcloud.png)
+
+*Figure 3. What one 3DGS run starts from and ends at (DL3DV-2). Left: the triangulated
+seed cloud, **7 860 points**. Right: **507 766 Gaussians** after 30 000 iterations. Both
+panels are the same run, the same camera (one of the 306 training views) and the same
+projection. This is the full-sequence run, not the N = 160 run of the table above
+(3 778 points), so the counts are not comparable — what the figure shows is the **65×
+re-parameterisation**: 3DGS does not render the point cloud, it rebuilds it as oriented
+ellipsoids. It is **not** evidence for the track-length gap, which needs VGGT's exported
+cloud; that cloud was not retained after the runs, so 8.19 versus 1.000 stays a
+numerical result.*
+
 ### 4.2 Why COLMAP's advantage grows with views
 
-![Figure 2 — scaling of rendering quality and pose accuracy with the view budget](../docs/figures/p1_scaling.png)
+![Figure 4 — scaling of rendering quality and pose accuracy with the view budget](figures/p1_scaling.png)
 
-*Figure 2. Rendering quality (top) and pose accuracy (bottom) versus training view
+*Figure 4. Rendering quality (top) and pose accuracy (bottom) versus training view
 budget. Error bars are run-to-run std; dotted segments reach the full-sequence COLMAP
 baseline (feed-forward backends cannot be run at 200+ frames in 32 GB).*
 
