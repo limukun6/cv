@@ -43,7 +43,7 @@ CJK_FONT = "\u5fae\u8f6f\u96c5\u9ed1"      # Microsoft YaHei, for the notes
 W, H = 13.333, 7.5
 MX = 0.62                                   # left/right margin
 CW = W - 2 * MX                             # content width
-NTOTAL = 11                                 # slides in the deck, for "n / N"
+NTOTAL = 13                                 # slides in the deck, for "n / N"
 
 
 # ---------------------------------------------------------------- helpers ---
@@ -773,6 +773,91 @@ COLMAP 的耗时是 CPU 相关的，换机器数值会变。
     return s
 
 
+def slide_videos(prs, figs, ctx):
+    s = blank(prs)
+    header(s, "Nine flythroughs, one per scene and budget", "appendix \u00b7 demo videos")
+
+    add_image(s, figs / "ppt_videos.png", MX, 1.58, CW, 4.42)
+
+    tf = textbox(s, MX, 6.22, CW, 0.70)
+    p = tf.paragraphs[0]
+    p.line_spacing = 1.12
+    run(p, "Six dense clips and three at N = 50, every one 8 s at 30 fps. ", size=11.5, color=INK,
+        bold=True)
+    run(p, "Rendered from the trained models by the same evaluation pass that produced the PSNR "
+           "tables, so the videos and the numbers are the same artefacts. "
+           "Package: docs/videos/, nine files, 69.6 MB.", size=11.5, color=MUTED)
+
+    footer(s, 12)
+    notes(s, """
+这是附录页，正式汇报时不占时间，放在最后当backup。如果老师说"有 demo 吗"，直接跳这里。
+九段视频，每段 8 秒、30fps、240 帧，是一个环绕相机轨迹。分组是按实验条件分的：
+上两行是稠密（N=160），正好覆盖三个必考场景 + 三个 Mip-NeRF 360 场景；
+最下一行是 N=50 的稀疏版本，一共三段。
+上下对比着看很有意思：同样是 DL3DV-2，N=50 那段和 N=160 那段，稠密那段明显更扎实。
+注意：文件名里没有写是哪个初始化渲染的。如果你记得是 COLMAP，被问的时候就说 COLMAP；
+不确定就别硬说，直接说"这是最终配置渲的"。
+下一页有一段可以直接点击播放的视频。
+""")
+    return s
+
+
+def slide_video_play(prs, figs, ctx):
+    s = blank(prs)
+    header(s, "Playback \u2014 Waymo-405841 at 160 views", "appendix \u00b7 demo")
+
+    video = figs.parent / "videos" / "waymo_dense160.mp4"
+    poster = figs / "ppt_video_poster.png"
+    w = 7.05
+    h = w * 320.0 / 480.0
+    top = 1.62
+    s.shapes.add_movie(str(video), Inches(MX), Inches(top), Inches(w), Inches(h),
+                       poster_frame_image=str(poster), mime_type="video/mp4")
+
+    PX, PW = 8.10, 4.60
+    tf = textbox(s, PX, 1.62, PW, 0.3)
+    para(tf, True, "WHAT TO WATCH", size=9.5, color=FAINT, bold=True)
+
+    items = [
+        ("The far kerb", "shimmers and re-forms as the camera moves \u2014 the signature of geometry "
+         "that is dense but mutually unconstrained."),
+        ("Parked cars on the left", "keep their silhouette but lose their edges; this is the scene "
+         "where the gap between backends is largest (+9.3 dB)."),
+        ("This is not a still", "the trajectory is continuous, so temporal consistency is on "
+         "display, not just per-frame fidelity."),
+    ]
+    y = 1.96
+    for lead, rest in items:
+        tf = textbox(s, PX, y, PW, 1.25)
+        p = tf.paragraphs[0]
+        p.line_spacing = 1.06
+        run(p, lead, size=11, color=INK, bold=True)
+        p2 = tf.add_paragraph()
+        p2.space_before = Pt(3)
+        p2.line_spacing = 1.06
+        run(p2, rest, size=10.5, color=MUTED)
+        y += 1.12
+
+    tf = textbox(s, PX, y + 0.10, PW, 0.9)
+    p = tf.paragraphs[0]
+    p.line_spacing = 1.08
+    run(p, "\u25b6 Click the frame to play. ", size=10.5, color=BLUE, bold=True)
+    run(p, "The other eight clips are separate mp4s in docs/videos/ \u2014 they are not embedded, "
+           "because embedding all nine would add ~70 MB to the deck.", size=10.5, color=MUTED)
+
+    footer(s, 13)
+    notes(s, """
+这段视频嵌在 PPT 里，点击画面就能直接播放，不需要另外开文件。
+选 Waymo 是因为这是车载场景，三维感和动态最明显，而且它恰好是三个后端差距最大的场景（+9.3 dB）。
+如果只有 30 秒，就放这一段，边放边说：
+"注意看远处路缘和左侧停着的车——几何是稠密的，但每帧之间没有多视图约束，
+所以相机一动，条纹会重新排列。这就是 track length = 1.0 在视觉上的样子。"
+重要提醒：如果这次放映用的是 PDF，视频播不了，只能看缩略图那一页。
+所以正式场合建议用 PPTX 放映，PDF 只当备份。
+""")
+    return s
+
+
 # ------------------------------------------------------------------- main ---
 def build(out: Path, figs: Path) -> Path:
     prs = Presentation()
@@ -785,7 +870,7 @@ def build(out: Path, figs: Path) -> Path:
     ctx = {}
     for fn in (slide_title, slide_setup, slide_result, slide_qual, slide_mechanism,
                slide_convergence, slide_speed, slide_scaling, slide_m360,
-               slide_failures, slide_conclusion):
+               slide_failures, slide_conclusion, slide_videos, slide_video_play):
         fn(prs, figs, ctx)
 
     out.parent.mkdir(parents=True, exist_ok=True)

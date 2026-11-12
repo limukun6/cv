@@ -481,8 +481,10 @@ python scripts/46_ate.py --scene dl3dv-2 --model data/dl3dv-2/colmap_n160/sparse
 python scripts/45_plot_p1_curves.py
 python scripts/47_plot_scaling.py
 
-# presentation deck (11 slides, English text + Chinese speaker notes)
-python scripts/50_make_ppt_figs.py
+# presentation deck: 11 content slides + 2 video-appendix slides, English text
+# with Chinese speaker notes
+python scripts/50_make_ppt_figs.py       # headline and runtime charts
+python scripts/52_make_video_sheet.py    # contact sheet + poster frame for the embedded clip
 python scripts/51_build_ppt.py
 ```
 
