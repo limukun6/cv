@@ -349,18 +349,24 @@ ATE 0.472 % → 0.073 % (6.5×) versus flat for VGGT-1B (0.222 % → 0.246 %) an
 (0.148 % → 0.145 %). Incremental SfM is under-constrained at 50 views and
 well-conditioned at 160.
 
-**(2) More views amplify the point-cloud gap.** Triangulated points gain from every
-additional ray; per-frame unprojections gain nothing and accumulate inconsistency.
-Measured gain from 50 → 160 views:
+**(2) The point-cloud gap widens only for VGGT-Ω.** Triangulated points gain from every
+additional ray; per-frame unprojections have nothing to gain from a new ray and only
+accumulate inconsistency. Measured gain from 50 → 160 views:
 
 | Scene | COLMAP | VGGT-1B | VGGT-Ω |
 |---|---|---|---|
-| DL3DV-2 | **+10.03 dB** | +9.84 | **+5.85** |
-| Re10k-1 | +1.67 | +0.97 | +1.21 |
-| Waymo-405841 | +1.40 | +0.88 | **+0.24** |
+| DL3DV-2 | **+10.10 dB** | +9.79 | +5.88 |
+| Re10k-1 | +1.65 | +0.87 | +1.23 |
+| Waymo-405841 | +0.41 | +0.72 | **+0.29** |
 
-**VGGT-Ω gains the least and loses 4.2 dB of relative ground on DL3DV-2, which is what
-moves it from first place at 50 views (+0.45 dB over COLMAP) to last at 160 (−3.76 dB).**
+The effect is more selective than the framing suggests. **VGGT-Ω's deficit over COLMAP
+grows on all three scenes — by 4.22 / 0.41 / 0.12 dB** in the table's row order — and that
+is what moves it from first place at 50 views (**+0.45 dB** over COLMAP) to last at 160
+(**−3.77 dB**) on DL3DV-2. **VGGT-1B's deficit is comparatively stable** (−0.31 / −0.77 /
+**+0.31** dB), and on Waymo-405841 it even narrows: COLMAP and VGGT-1B gain almost equally
+there, so the point-cloud explanation does not by itself predict a widening gap against
+VGGT-1B. What the data supports is narrower than the mechanism: Ω pays for extra views,
+and COLMAP is the only backend still gaining at the full-sequence budget.
 
 > We state the Ω mechanism as a **hypothesis**: Ω shares the track-length-1 property,
 > so the same explanation is plausible, but confirming it requires a direct multi-view

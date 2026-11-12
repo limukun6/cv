@@ -557,7 +557,7 @@ def slide_scaling(prs, figs, ctx):
     p.line_spacing = 1.12
     run(p, "COLMAP's pose error collapses 6.5\u00d7 (DL3DV-2) and 4.4\u00d7 (Re10k-1) from 50 \u2192 160 views; "
            "feed-forward error does not move. ", size=12, color=INK, bold=True)
-    run(p, "VGGT-\u03a9 gains the least (+5.85 dB vs COLMAP's +10.03 on DL3DV-2), which is what moves it "
+    run(p, "VGGT-\u03a9's deficit over COLMAP grows on all three scenes, which is what moves it "
            "from first place at 50 views to last at 160.", size=12, color=MUTED)
 
     footer(s, 8)
@@ -569,8 +569,13 @@ def slide_scaling(prs, figs, ctx):
 RealEstate10K 从 1.065% 掉到 0.241%，4.4 倍。而红绿两条线基本是平的。
 也就是说经典 SfM 的精度是"给它多少数据"的函数，前馈模型的精度不是。
 再看上排，DL3DV 上 COLMAP 从 22.1 涨到 32.2，VGGT-Ω 只从 22.5 涨到 28.4。
-VGGT-Ω 在 50 视角时其实是第一名（比 COLMAP 高 0.45 dB），到 160 视角掉到最后一名，落后 3.76 dB。
+VGGT-Ω 在 50 视角时其实是第一名（比 COLMAP 高 0.45 dB），到 160 视角掉到最后一名，落后 3.77 dB。
 这个反转就是"增益最少"的后果，也是我们报告的第二个反直觉发现。
+但这里我要提醒你一个容易被追问的点，别把话说满：如果问"那 COLMAP 对 VGGT-1B 的差距也拉大了吗"，
+答案是**不一定**。DL3DV 上两者增益几乎一样（+10.1 对 +9.8），差距只从 2.78 拉到 3.09；
+Waymo 上反而缩小了 0.31 dB（+0.41 对 +0.72）。
+真正稳定成立的是"Ω 相对 COLMAP 的差距在三个场景全都变大"（4.22 / 0.41 / 0.12 dB）。
+所以标题说"差距拉大"，严格说是对 Ω 成立、对 1B 大致持平——被问到就照这个说，不要硬撑。
 注意 Ω 的这个机理解释我们标成了假设——因为它在 track length 上和 VGGT-1B 一样，
 但要做多视图一致性测量才能确认，我们没做。
 """)
