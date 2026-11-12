@@ -2,6 +2,10 @@
 
 **COLMAP vs. VGGT-1B vs. VGGT-Ω as 3DGS initialization under a controlled view budget**
 
+**[Your Name]** · [Student ID] · [Affiliation]
+
+AIAA 3201 · Project 4 · November 2026
+
 > Part 1 only. Part 2 (unposed sparse reconstruction) and Part 3 (generative closed
 > loop) are out of scope. Every number traces to `results/results.csv` or
 > `results/ate.csv` by `run_id`; anything not measured is marked as such.
@@ -156,8 +160,11 @@ metric:
 *Figure 3. The three initializations rendered at identical test views (DL3DV-2, N = 160).
 Corner labels are per-view PSNR; column headers are scene means. VGGT-1B loses the fine
 structure of the red foliage and the paving joints, while VGGT-Ω retains shape but shows
-colour drift — the quantitative ordering is visible by eye. The same figures for
-RealEstate10K-1 and Waymo-405841 are `p1_qual_re10k-1.png` and `p1_qual_waymo-405841.png`.*
+colour drift — the quantitative ordering is visible by eye. **The VGGT-1B column here
+reads 21.42 dB, a different export draw than the 29.08 dB of Table 1** (see the caveat
+above); the COLMAP and VGGT-Ω columns are the runs reported in the tables. The same
+figures for RealEstate10K-1 and Waymo-405841 are `p1_qual_re10k-1.png` and
+`p1_qual_waymo-405841.png`.*
 
 ### 3.2 Pose accuracy
 
@@ -464,10 +471,15 @@ python scripts/14_run_omega_pipeline.py --scene dl3dv-2 --frames 160
 python scripts/46_ate.py --scene dl3dv-2 --model data/dl3dv-2/colmap_n160/sparse/0
 python scripts/45_plot_p1_curves.py
 python scripts/47_plot_scaling.py
+
+# presentation deck (10 slides, English text + Chinese speaker notes)
+python scripts/50_make_ppt_figs.py
+python scripts/51_build_ppt.py
 ```
 
 Artifacts: `results/results.csv` (75 rows), `results/ate.csv` (19 rows),
-`results/p1_curves.csv`, nine rendered videos in `docs/videos/`.
+`results/p1_curves.csv`, nine rendered videos in `docs/videos/`, and
+`docs/PART1_SLIDES.pptx` (with a `docs/PART1_SLIDES.pdf` rendering).
 
 **Hardware.** N=50: RTX 4090 24 GB (and an 8 GB laptop for the dense COLMAP baseline,
 where VGGT was capped at 3–10 frames — which motivated the cloud runs). N=160:
