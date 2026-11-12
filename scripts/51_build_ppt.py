@@ -43,6 +43,7 @@ CJK_FONT = "\u5fae\u8f6f\u96c5\u9ed1"      # Microsoft YaHei, for the notes
 W, H = 13.333, 7.5
 MX = 0.62                                   # left/right margin
 CW = W - 2 * MX                             # content width
+NTOTAL = 11                                 # slides in the deck, for "n / N"
 
 
 # ---------------------------------------------------------------- helpers ---
@@ -116,7 +117,7 @@ def footer(slide, idx, label="Part 1 \u00b7 Initialization Analysis"):
     tf = textbox(slide, MX, 7.06, 8.0, 0.26)
     para(tf, True, label, size=9, color=FAINT)
     tf = textbox(slide, W - MX - 1.0, 7.06, 1.0, 0.26)
-    para(tf, True, f"{idx} / 10", size=9, color=FAINT, align=PP_ALIGN.RIGHT)
+    para(tf, True, f"{idx} / {NTOTAL}", size=9, color=FAINT, align=PP_ALIGN.RIGHT)
 
 
 def notes(slide, text):
@@ -576,6 +577,88 @@ VGGT-Ω 在 50 视角时其实是第一名（比 COLMAP 高 0.45 dB），到 160
     return s
 
 
+def slide_m360(prs, figs, ctx):
+    s = blank(prs)
+    header(s, "Bonus: it also holds on Mip-NeRF 360", "additional dataset")
+
+    tf = textbox(s, MX, 1.72, 6.4, 0.3)
+    para(tf, True, "THE 3DGS PAPER'S OWN BENCHMARK \u2014 OPTIONAL IN THE BRIEF",
+         size=9.5, color=FAINT, bold=True)
+
+    table(s, [["Scene", "Images", "COLMAP", "VGGT-1B", "Gap"],
+              ["counter", "240", "29.47", "23.66", "+5.81"],
+              ["bonsai", "292", "31.27", "17.03", "+14.24"],
+              ["flowers", "173", "21.49", "15.51", "+5.99"]],
+          left=MX, top=2.10, width=6.40, col_w=[1.8, 1.2, 1.5, 1.5, 1.3],
+          size=13, head_size=11, header_h=0.44, row_h=0.56,
+          aligns=[PP_ALIGN.LEFT] + [PP_ALIGN.RIGHT] * 4,
+          highlight={(1, 2): BLUE, (2, 2): BLUE, (3, 2): BLUE, (2, 4): INK},
+          first_col_bold=True)
+
+    tf = textbox(s, MX, 4.40, 6.4, 0.6)
+    p = tf.paragraphs[0]
+    p.line_spacing = 1.08
+    run(p, "COLMAP is re-run by us on the same frames", size=10.5, color=MUTED, bold=True)
+    run(p, ", not the bundled all-frame model \u2014 otherwise the comparison would not be "
+           "like-for-like.", size=10.5, color=MUTED)
+
+    PX, PW = 7.15, 5.55
+    tf = textbox(s, PX, 1.72, PW, 0.3)
+    para(tf, True, "WHAT IT SHOWS", size=9.5, color=FAINT, bold=True)
+
+    tf = textbox(s, PX, 2.10, PW, 1.10)
+    p = tf.paragraphs[0]
+    p.line_spacing = 1.10
+    run(p, "+5.8 to +14.2 dB. ", size=12.5, color=INK, bold=True)
+    run(p, "The COLMAP advantage is the same order as on the three mandatory scenes, on a "
+           "benchmark we did not tune on.", size=12.5, color=MUTED)
+
+    tf = textbox(s, PX, 3.02, PW, 1.55)
+    p = tf.paragraphs[0]
+    p.line_spacing = 1.10
+    run(p, "bonsai is the strongest form of the scaling asymmetry. ", size=12.5, color=INK, bold=True)
+    run(p, "Going from 50 to 160 views, COLMAP improves (28.33 \u2192 31.27 dB) while "
+           "VGGT-1B gets ", size=12.5, color=MUTED)
+    run(p, "worse", size=12.5, color=RED, bold=True)
+    run(p, " (19.05 \u2192 17.03 dB).", size=12.5, color=MUTED)
+
+    rect(s, PX, 4.44, PW, 0.74, BG_SOFT)
+    rect(s, PX, 4.44, 0.055, 0.74, AMBER)
+    tf = textbox(s, PX + 0.22, 4.55, PW - 0.44, 0.56)
+    p = tf.paragraphs[0]
+    p.line_spacing = 1.08
+    run(p, "Caveats. ", size=10.5, color=AMBER, bold=True)
+    run(p, "Six configurations, n = 1, no significance test. VGGT-\u03a9 was not run here. "
+           "kitchen is absent from the weights mirror we used, so flowers was substituted.",
+        size=10.5, color=MUTED)
+
+    rect(s, MX, 6.28, CW, 0.60, BG_SOFT)
+    rect(s, MX, 6.28, 0.055, 0.60, BLUE)
+    tf = textbox(s, MX + 0.22, 6.38, CW - 0.44, 0.42)
+    p = tf.paragraphs[0]
+    run(p, "3 of 3 scenes, same direction, no reversal \u2014 ", size=11.5, color=INK, bold=True)
+    run(p, "the optional-deliverable check passes, and on a benchmark we never tuned on.",
+        size=11.5, color=MUTED)
+
+    footer(s, 9)
+    notes(s, """
+这一页是加分项，也补上一个逻辑漏洞：报告第 6 节提到 Mip-NeRF 360 只有单种子，
+如果 deck 里完全不出现它，这个 limitation 就成了悬空引用。
+Mip-NeRF 360 是任务书里明确列为可选的额外数据集，也是原始 3DGS 论文自己的基准。
+我们跑的时候没有复用官方打包的全帧 COLMAP 模型，而是自己用同样的帧重跑了一遍，
+否则比较不是同口径的——这一点写在左下角。
+结果：COLMAP 领先 +5.8 到 +14.2 dB，和三个必考场景是同一个量级。
+这说明结论不是挑场景挑出来的。
+右边第二条是我觉得最有说服力的：bonsai 上从 50 视角加到 160 视角，
+COLMAP 从 28.33 涨到 31.27，而 VGGT-1B 反而从 19.05 掉到 17.03。
+给更多数据，经典方法变好、前馈方法变差——这是第 8 页 scaling 那张图的最强版本。
+右下角主动交代 caveat：六个配置都是单次运行，没有做显著性检验；
+这个数据集上没跑 VGGT-Ω；另外我们用的权重镜像里没有 kitchen，所以用 flowers 顶替。
+如果被问"为什么不是同一批场景"，就说是镜像缺场景，不是我们挑有利的跑。
+""")
+    return s
+
+
 def slide_failures(prs, figs, ctx):
     s = blank(prs)
     header(s, "Seven silent failure modes", "the hidden cost")
@@ -607,7 +690,7 @@ def slide_failures(prs, figs, ctx):
            "intermediate quantity against a known reference. Watching the loss curve would not have caught either.",
         size=11.5, color=MUTED)
 
-    footer(s, 9)
+    footer(s, 10)
     notes(s, """
 这一页是我认为对做实验最有价值的部分，虽然它不在任务书的评分项里。
 前面所有数字，都是先排掉这七个坑才得到的。这七个的共同点是：全都不报错。
@@ -662,7 +745,7 @@ def slide_conclusion(prs, figs, ctx):
            "VGGT-poses + re-triangulated-points run; COLMAP timings are CPU-bound.",
         size=10.5, color=MUTED)
 
-    footer(s, 10)
+    footer(s, 11)
     notes(s, """
 收尾，四句话。
 第一句是主结论：COLMAP 初始化在三个场景都最好，而且视角越多领先越多。
@@ -691,8 +774,8 @@ def build(out: Path, figs: Path) -> Path:
 
     ctx = {}
     for fn in (slide_title, slide_setup, slide_result, slide_qual, slide_mechanism,
-               slide_convergence, slide_speed, slide_scaling, slide_failures,
-               slide_conclusion):
+               slide_convergence, slide_speed, slide_scaling, slide_m360,
+               slide_failures, slide_conclusion):
         fn(prs, figs, ctx)
 
     out.parent.mkdir(parents=True, exist_ok=True)

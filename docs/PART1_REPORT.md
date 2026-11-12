@@ -472,7 +472,7 @@ python scripts/46_ate.py --scene dl3dv-2 --model data/dl3dv-2/colmap_n160/sparse
 python scripts/45_plot_p1_curves.py
 python scripts/47_plot_scaling.py
 
-# presentation deck (10 slides, English text + Chinese speaker notes)
+# presentation deck (11 slides, English text + Chinese speaker notes)
 python scripts/50_make_ppt_figs.py
 python scripts/51_build_ppt.py
 ```
