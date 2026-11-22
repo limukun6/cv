@@ -1,0 +1,10 @@
+torch==2.5.1
+torchvision==0.20.1
+opencv-python
+numpy<2
+plyfile
+tqdm
+cupy-cuda12x
+joblib
+meshi
+imgui-bundle
